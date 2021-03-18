@@ -1,0 +1,9 @@
+* text text=auto eol=lf
+
+# Declare files that will always have CRLF line endings on checkout.
+*.bat eol=crlf
+*.cmd eol=crlf
+*.hta eol=crlf
+
+# Declare files that will always have LF line endings on checkout.
+*.pem eol=lf

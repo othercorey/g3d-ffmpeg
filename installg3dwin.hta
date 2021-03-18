@@ -1,0 +1,581 @@
+<head>
+<title>G3D Installer (BETA)</title>
+<HTA:APPLICATION 
+     APPLICATIONNAME="Install G3D"
+     SCROLL="yes"
+     MaximizeButton="no"
+     SINGLEINSTANCE="yes"
+     icon="wextract.exe"
+>
+</head>
+
+<script language="VBScript">
+' These URLs must not contain ampersands or wild cards. To find a SourceForge download URL,
+' manually start a download in Chrome, cancel it, and look on the Downloads page of Chrome 
+' for the real URL.
+Const REQUIRED_PYTHON_VERSION = 3.6
+Const PYTHON_INSTALLER_URL    = "https://casual-effects.com/g3d/external/python-3.6.1-amd64.exe"
+Const SVN_INSTALLER_URL       = "https://casual-effects.com/g3d/external/tortoisesvn.msi"
+Const VS_INSTALLER_URL        = "https://casual-effects.com/g3d/external/vs_community.exe"
+Const DOXYGEN_INSTALLER_URL   = "https://doxygen.nl/files/doxygen-1.9.1-setup.exe"
+Const G3D_INCLUDE_PATH        = "$(g3d)\G3D10\external\ffmpeg\win64\include;$(g3d)\G3D10\external\glslang;$(g3d)\G3D10\external\vulkan\include;$(g3d)\G3D10\external\assimp.lib\include;$(g3d)\G3D10\external\civetweb.lib\include;$(g3d)\G3D10\external\enet.lib\include;$(g3d)\G3D10\external\wave.lib\include;$(g3d)\G3D10\external\freeimage.lib\include;$(g3d)\G3D10\external\glew.lib\include;$(g3d)\G3D10\external\glfw.lib\include;$(g3d)\G3D10\external\nfd.lib\include;$(g3d)\G3D10\external\qrencode.lib\include;$(g3d)\G3D10\external\zip.lib\include;$(g3d)\G3D10\external\zlib.lib\include;$(g3d)\G3D10\external\openvr\include;$(g3d)\G3D10\external\physx\include;$(g3d)\G3D10\G3D-base.lib\include;$(g3d)\G3D10\G3D-gfx.lib\include;$(g3d)\G3D10\G3D-app.lib\include;$(g3d)\G3D10\GLG3DVR.lib\include;$(g3d)\G3D10\external\tbb\include;$(g3d)\G3D10\external\python\include"
+Const G3D_LIBRARY_PATH        = "$(g3d)\G3D10\build\lib"
+
+Set wshShell = CreateObject("WScript.Shell")
+Set fileSystem = CreateObject("Scripting.FileSystemObject") 
+Set wshUserEnv = wshShell.Environment("USER")
+Set wshSystemEnv = wshShell.Environment("SYSTEM")
+
+Const CHECKED               = "&#9745;"
+Const HKEY_LOCAL_MACHINE    = &H80000002
+
+Function ComputerName()
+	ComputerName = wshShell.ExpandEnvironmentStrings("%COMPUTERNAME%")
+End Function
+
+Function UserName()
+	UserName = wshShell.ExpandEnvironmentStrings("%USERNAME%")
+End Function
+
+
+Function OSVersion()
+    AppendToLog "OSVersion"
+   Set SystemSet = GetObject("winmgmts:").InstancesOf ("Win32_OperatingSystem")
+   for each System in SystemSet 
+    OSVersion = System.Caption & " (" & System.Version & ")"
+   next
+    AppendToLog "End OSVersion"
+End Function
+
+
+
+Function GPUInfo()
+    AppendToLog "GPUInfo"
+    On Error Resume Next
+    Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
+    Set colItems = objWMIService.ExecQuery("Select * from Win32_VideoController", , 48)
+    Wscript.Echo "Items collected: " & colItems
+    Wscript.Echo upper(colItems)
+    GPUInfo = ""
+    For Each objItem in colItems
+        GPUInfo = GPUInfo & objItem.Caption & "<br/>"
+        ' & " (" & FormatNumber(objItem.AdapterRAM /1024\1024, 0) & " MB)<br/>"
+    Next
+End Function
+
+
+Sub Download(url, filename)
+    AppendToLog "Downloading " & url & " to " & filename
+    ' Show the download progress
+    wshShell.Run "powershell -command wget " & url & " -Outfile " & filename, 1, True
+    AppendToLog "Done downloading " & filename
+End Sub
+
+
+' Fire and forget
+Sub Run(filename, params, block, window)
+    If True Then
+        wshShell.Run filename & " " & params, window, block
+    Else
+        Set shell = CreateObject("shell.application") 
+        shell.ShellExecute filename, params, "", "", 0
+    End If
+End Sub
+
+
+' Flashes a window and returns the result of running the program as text
+Function GetOutput(cmd)
+    ' Useful for debugging
+    ' AppendToLog cmd
+    Set process = wshShell.Exec(cmd) 'TODO: why exec and not run here?
+    GetOutput = ""
+    'We assume only one of these streams has data
+    do while not (process.StdOut.AtEndOfStream And process.StdErr.AtEndOfStream)
+        If Not process.StdOut.AtEndOfStream Then
+            GetOutput = GetOutput & process.StdOut.ReadLine() & chr(10)    
+        End If
+
+        If Not process.StdErr.AtEndOfStream Then
+            GetOutput = GetOutput & process.StdErr.ReadLine() & chr(10) 
+        End If
+
+        'Where cmd needs to return "" if nothing is found, but prints the below msg to stderr
+        If InStr(GetOutput, "INFO: Could not find files for the given pattern(s)") Then
+            GetOutput = ""
+        End If
+    loop
+    process.Terminate
+End Function
+
+
+Function EscapeHTML(str)
+    EscapeHTML = Replace(Replace(Replace(Replace(str, "<", "&lt;"), ">", "&gt;"), " ", "&nbsp;"), chr(10), "<br/>")
+End Function
+
+
+rem Avoid flash...doesn't work
+Function GetOutput2(cmd)
+    wshShell.Run cmd & " > tmp.txt", 0, True 
+    GetOutput2 = fileSystem.OpenTextFile("tmp.txt").ReadAll()
+    fileSystem.DeleteFile "tmp.txt"
+End Function
+
+
+Function ScriptDirectory()
+   ' based on https://gallery.technet.microsoft.com/scriptcenter/094f0cc1-215b-4bf7-a60f-bfcb8aca11cd
+   ' document.location.href always returns the HTML rendering of own fully-qualified 
+   ' location: "file:///" followed by fully-qualified path to curr file, but elements   
+   ' are separated by FORWARD slashes and spaces are rendered as "%20". 
+   ' Capture it, strip off leading data, replace slashes and escape sequences. 
+   strHtmlLocnVal = document.location.href
+   strThisHTA = Replace(Right(strHtmlLocnVal, Len(strHtmlLocnVal) - 8), "/", "\") 
+   ' Bind FSO to the file and capture parent directory. 
+   Set objThisFile = fileSystem.GetFile(UnEscape(strThisHTA)) 
+   ScriptDirectory = fileSystem.GetFolder(objThisFile.ParentFolder )
+End Function
+
+
+' Runs a shell command and returns its exit code
+Function ShellCmd(cmd)
+    ShellCmd = wshShell.Run("cmd.exe /s /c /q " & cmd, 0, True)
+End Function
+
+
+Function FileExists(file)
+    FileExists = fileSystem.FileExists(file)
+end function
+
+
+Sub AppendToLog(msg)
+    set L = document.getElementById("log")
+    L.innerHTML = L.innerHTML & escapeHTML(msg) & "<br/>"
+End Sub
+
+
+Function PythonLocation()
+    Dim python : python = GetOutput("where python")
+    'AppendToLog python + " output immediately after where python"
+    If python = "" Then
+        python = GetOutput("where python3")
+        If python <> "" Then
+            ' "where python" will return multiple paths on a machine with multiple versions
+            ' of python 3, so make sure we are only returning one of them.
+            python = Mid(python, 1, InStr(python, vbCrLf))
+            'python = Replace(Replace(python, chr(13), ""), chr(10), "")
+        End If
+    End If
+
+    'Remove the trailing newline that "where python" adds by default
+    index = InStr(python, Chr(10))
+    If index > 0 Then
+        python = Mid(python, 1, index - 1)
+    End If
+
+    If python <> "" Then
+        ' Check version imediately so we only return a path that is valid.
+        Dim version : version = Trim(Mid(GetOutput(python & " --version"), Len("Python ")))
+        ' The stub either returns a lengthy message with a URL to download python, or nothing.
+        ' Check here for a actual python installation with a real version. Later, we'll ensure
+        ' that it's also the right version.
+        If Len(version) > 6 Or version = "" Then
+            ' Stub
+            python = ""
+        End If
+    End If
+
+    If python = "" Then
+        ' Not in PATH...look at explicit default location
+        python = wshShell.ExpandEnvironmentStrings("%LOCALAPPDATA%\Programs\Python\Python" & cint(replace(REQUIRED_PYTHON_VERSION, ".", "")) & "\python.exe")
+        If not FileExists(python) Then
+            python = ""
+        End If
+    End If
+    
+
+    PythonLocation = python
+End Function
+
+
+Function EnsurePython3IsInstalled()
+    AppendToLog "Ensuring Python " & REQUIRED_PYTHON_VERSION & " is installed."
+
+    If python = "" then
+        InstallPython3("Python is not installed")
+        UpdatePythonInfo
+    ElseIf pythonVersion < REQUIRED_PYTHON_VERSION then
+        InstallPython3("your system has old Python version " & pythonVersion)
+        UpdatePythonInfo
+    End if
+    
+    ' At this point, we know that our python path points to the valid 
+    ' Python 3 version G3D will use to build. So, to test if it needs 
+    ' to be added to the path, we just test for equality with the
+    ' output of "where python" (after removing the trailing newline).
+
+	pathPython = GetOutput("where python")
+	'Remove the trailing newline that where python adds by default
+    index = InStr(pathPython, Chr(10))
+    If index > 0 Then
+        pathPython = Mid(pathPython, 1, index - 1)
+    End If
+	
+    if pathPython <> python Then
+        ' Installed, but not in path.
+        dim pyPath : pyPath = fileSystem.GetParentFolderName(python)
+        AppendToLog("Adding " & pyPath & " to the user PATH environment variable")
+        
+        dim path : path = wshUserEnv("PATH")
+        path = pyPath & ";" & path
+        wshUserEnv("PATH") = path
+        UpdateEnv
+    End If
+    
+    AppendToLog "Python " & REQUIRED_PYTHON_VERSION & " is installed as " & python & "."
+end Function
+
+
+Sub InstallPython3(reason)
+    AppendToLog("Python " & REQUIRED_PYTHON_VERSION & " must be installed because " & reason)
+    
+    Const installerFilename = "temp\installPython.exe"
+    If Not FileExists(installerFilename) Then
+      On Error Resume Next
+      Set f = fileSystem.CreateFolder("temp")    
+      Download PYTHON_INSTALLER_URL, installerFilename
+    End If
+    
+    Run installerFilename, "/passive", True, 0
+    UpdateProgress        
+End Sub
+
+
+' Called from Window_onLoad to update the GUI, python, and pythonVersion
+Dim python : python = ""
+Dim pythonVersion : pythonVersion = 0
+Sub UpdatePythonInfo()
+    AppendToLog "UpdatePythonInfo"
+    python = PythonLocation()
+    If python <> "" Then
+        document.getElementById("pypath").innerHTML = python
+        Dim version : version = Trim(Mid(GetOutput(python & " --version"), Len("Python ")))
+        ' PythonLocation removed Windows 10 bogus python stub, so we can just get the version here.
+        Dim i : i = InStr(3, version, ".")
+        If i > 0 Then
+            ' Remove the 2nd decimal point
+            pythonVersion = CDbl(Mid(version, 1, i - 1))            
+        Else
+            ' No 2nd decimal point
+            pythonVersion = CDbl(version)
+        End If
+        document.getElementById("pyver").innerHTML = "Version " & version
+    Else
+        document.getElementById("pypath").innerHTML = "Not installed"
+    End If
+End Sub
+
+
+Sub EnsureSVNIsInstalled()
+    If GetOutput("where svn") = "" Then
+        AppendToLog "SVN is not installed (or in the path)."
+
+        on Error Resume Next
+        Set f = fileSystem.CreateFolder("temp")
+        Const installerFilename = "temp\installSVN.msi"
+        Download SVN_INSTALLER_URL, installerFilename
+        
+        Run "msiexec.exe", "/i " & installerFilename & " /passive ADDLOCAL=ALL", True, 0
+        AppendToLog "Installed TortoiseSVN and command line tools."
+        UpdateProgress
+    Else
+        AppendToLog "SVN is installed."
+    End If
+End Sub
+
+
+Sub EnsureDoxygenIsInstalled()
+    If GetOutput("where doxygen") = "" Then
+        AppendToLog "Doxygen is not installed (or in the path)."
+
+        on Error Resume Next
+        Set f = fileSystem.CreateFolder("temp")
+        Const installerFilename = "temp\installDoxygen.exe"
+        Download DOXYGEN_INSTALLER_URL, installerFilename
+        Run installerFilename, "/SP- /SILENT /NORESTART", True, 0
+        AppendToLog "Installed Doxygen."
+        
+        ' Doxygen automatically adds itself to the PATH
+        UpdateProgress
+    End If
+End Sub
+
+Sub SetG3DVarsIfNeeded()
+	
+    If wshShell.ExpandEnvironmentStrings("%g3d%") = "" Or wshShell.ExpandEnvironmentStrings("%g3d%") = "%g3d%" Then
+        Dim g3dPath : g3dPath = wshShell.ExpandEnvironmentStrings("%systemdrive%\g3d")
+        If FileExists("readme.md.html") and FileExists("buildg3d") Then
+            ' The current directory appears to be a G3D svn checkout already
+            g3dPath = wshShell.CurrentDirectory
+        End If
+        
+        g3dPath = InputBox("Enter the path for the root of the G3D source installation, without a trailing slash:", "G3D Install Location", g3dPath)
+        
+        If g3dPath = "" Then
+            alert("Installation Cancelled")
+            self.close()
+        End If
+        
+        AppendToLog "Set system environment variable g3d = " & g3dPath & "."
+		
+		On Error Resume Next
+		
+		'Must run with elevated permissions to set environment variables.
+		Set objShell = CreateObject("Shell.Application")
+		objShell.ShellExecute "setx", "g3d " & g3dPath & " /M", "", "runas", 0
+
+		UpdateEnv
+    End If
+    
+    If wshShell.ExpandEnvironmentStrings("%G3D10DATA%") = "" Or wshShell.ExpandEnvironmentStrings("%G3D10DATA%") = "%G3D10DATA%" Then
+        wshUserEnv("G3D10DATA") = "%g3d%\G3D10\data-files;%g3d%\data10\common;%g3d%\data10\research;%g3d%\data10\game"
+        AppendToLog "Set user environment variable G3D10DATA = " & wshUserEnv("G3D10DATA") & "."
+        UpdateEnv
+    End If
+    
+    If Not (InStr(wshShell.ExpandEnvironmentStrings("%PATH%"), "G3D10\build\bin") > 0) Then
+        wshUserEnv("PATH") = "%g3d%\G3D10\build\bin;" & wshUserEnv("PATH")
+        AppendToLog "Added %g3d%\G3D10\build\bin to the front of user environment variable PATH."
+        UpdateEnv
+    End If
+    
+    AppendToLog "PATH, g3d, and G3D10DATA environment variables are all set."
+    UpdateProgress
+End Sub
+
+
+Sub CheckoutG3DIfNeeded()
+    If Not FileExists(wshShell.ExpandEnvironmentStrings("%g3d%\G3D10\G3D-base.lib\include\G3D-base\G3D-base.h")) Then
+        AppendtoLog "Checking out G3D source code from the SVN repository to " & wshShell.ExpandEnvironmentStrings("%g3d%") & "..."
+        'Alert("This version of the installer requires you to check out G3D from SVN manually. Please check it out and then rerun the installer.")
+        'self.Close()
+        Run "svn", "co --depth immediates svn://svn.code.sf.net/p/g3d/code %g3d%", True, 0
+		Run "svn", "co --depth infinity svn://svn.code.sf.net/p/g3d/code/G3D10 %g3d%/www", True, 0
+		Run "svn", "co --depth infinity svn://svn.code.sf.net/p/g3d/code/G3D10 %g3d%/index", True, 0
+		Run "svn", "co --depth infinity svn://svn.code.sf.net/p/g3d/code/G3D10 %g3d%/G3D10", True, 1
+    End If
+End Sub
+
+
+Sub InstallMSVCIfNeeded()
+    if Not (FileExists(wshShell.ExpandEnvironmentStrings("%programfiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe")) or FileExists(wshShell.ExpandEnvironmentStrings("%programfiles(x86)%\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe")) or FileExists(wshShell.ExpandEnvironmentStrings("%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe")) ) Then
+        'An optional variable set if G3D cannot detect an existing VS 2019 installation.
+        g3dVSPath = InputBox("Microsoft Visual Studio 2019 was not auto-detected on your system. If you do not have VS 2019 installed, click Cancel and it will automatically be installed for you. If you have VS 2019 installed, please input the path to your " + Chr(34) + "Microsoft Visual Studio" + Chr(34) + " folder here:", "Microsoft Visual Studio Location", g3dVSPath)
+        
+        If g3dVSPath <> "" Then
+            index = InStr(g3dVSPath, "Microsoft Visual Studio")
+            If index Then
+                g3dVSPath = Left(g3dVSPath, index - 2)
+            End If
+            'Must run with elevated permissions to set environment variables.
+            wshUserEnv("G3D_VS_PATH") = g3dVSPath
+            AppendToLog "Set user environment variable G3D_VS_PATH = " & g3dVSPath & "."
+        
+		    UpdateEnv
+
+            '  If Not FileExists("C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installershell.exe") Then
+            '    ' Run the installer-installer
+            '    Const installerFilename = "temp\installVS.exe"
+            '    If Not FileExists(installerFilename) Then
+            '      on Error Resume Next
+            '      Set f = fileSystem.CreateFolder("temp")
+            '      Download VS_INSTALLER_URL, installerFilename
+            '    End If
+            '    Run installerFilename, "--passive", True
+            '  End If
+            '         
+            '           ' Run the actual installation
+            '           Run """C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installershell.exe""", "install --focusedUi --productId Microsoft.VisualStudio.Product.Community --channelID VisualStudio.17.Release --add Microsoft.VisualStudio.Workload.NativeDesktop;includeRecommended", True
+                  
+        Else 
+            ' Run the installer-installer
+            Const installerFilename = "temp\installVS.exe"
+            If Not FileExists(installerFilename) Then
+              on Error Resume Next
+              Set f = fileSystem.CreateFolder("temp")
+              Download VS_INSTALLER_URL, installerFilename
+            End If
+            Alert "G3D Installer is now launching the Visual Studio 2019 installer. Please approve it and then select both the 'Desktop development with C++' Workload and the Windows 10 SDK (10.0.17134.0) when prompted."
+            wshShell.Run installerFilename, 1, True
+            Alert "After you have selected the 'Desktop development with C++' Workload, wait for the Visual Studio installer to finish, then click 'Ok'."
+            AppendToLog "Installed Visual Studio 2019."  
+        End If
+        UpdateProgress      
+    End If
+End Sub
+
+
+Sub ConfigureSyntaxHighlightingIfNeeded()
+    
+    'Configure syntax highlighting in the installer
+    Set userSettingsFilename = fileSystem.GetFolder(wshShell.ExpandEnvironmentStrings("%userprofile%\AppData\Local\Microsoft\VisualStudio"))
+    For Each subfolder In userSettingsFilename.SubFolders
+        On Error Resume Next
+        Set scratch = fileSystem.OpenTextFile(subfolder + "\Settings\CurrentSettings.vssettings", 1)
+        If Err Then
+        Else
+            ' Found the file, so configure highlighting
+            Set userSettingsFile = fileSystem.OpenTextFile(subfolder + "\Settings\CurrentSettings.vssettings", 1)
+            content = userSettingsFile.ReadAll()
+            userSettingsFile.close()
+            
+            content = Replace(content, "<PropertyValue name=" & Chr(34) & "NumberOfMappings" & Chr(34) & ">0</PropertyValue><PropertyValue name=" & Chr(34) & "NumberOfDefaultEditors" & Chr(34) & ">0</PropertyValue>", "<PropertyValue name=" & Chr(34) & "NumberOfMappings" & Chr(34) & ">6</PropertyValue><PropertyValue name=" & Chr(34) & "FileMapping&gt;0" & Chr(34) & ">any&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;{B2F072B0-ABC1-11D0-9D62-00C04FD9DFD9}</PropertyValue><PropertyValue name=" & Chr(34) & "FileMapping&gt;1" & Chr(34) & ">geo&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;{B2F072B0-ABC1-11D0-9D62-00C04FD9DFD9}</PropertyValue><PropertyValue name=" & Chr(34) & "FileMapping&gt;2" & Chr(34) & ">glsl&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;{B2F072B0-ABC1-11D0-9D62-00C04FD9DFD9}</PropertyValue><PropertyValue name=" & Chr(34) & "FileMapping&gt;3" & Chr(34) & ">pix&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;{B2F072B0-ABC1-11D0-9D62-00C04FD9DFD9}</PropertyValue><PropertyValue name=" & Chr(34) & "FileMapping&gt;4" & Chr(34) & ">vrt&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;{B2F072B0-ABC1-11D0-9D62-00C04FD9DFD9}</PropertyValue><PropertyValue name=" & Chr(34) & "FileMapping&gt;5" & Chr(34) & ">glc&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;{B2F072B0-ABC1-11D0-9D62-00C04FD9DFD9}</PropertyValue><PropertyValue name=" & Chr(34) & "NumberOfDefaultEditors" & Chr(34) & ">6</PropertyValue><PropertyValue name=" & Chr(34) & "DefaultEditor&gt;0" & Chr(34) & ">any&gt;1&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;NoGuid</PropertyValue><PropertyValue name=" & Chr(34) & "DefaultEditor&gt;1" & Chr(34) & ">geo&gt;1&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;NoGuid</PropertyValue><PropertyValue name=" & Chr(34) & "DefaultEditor&gt;2" & Chr(34) & ">glsl&gt;1&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;NoGuid</PropertyValue><PropertyValue name=" & Chr(34) & "DefaultEditor&gt;3" & Chr(34) & ">pix&gt;1&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;NoGuid</PropertyValue><PropertyValue name=" & Chr(34) & "DefaultEditor&gt;4" & Chr(34) & ">vrt&gt;1&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;NoGuid</PropertyValue><PropertyValue name=" & Chr(34) & "DefaultEditor&gt;5" & Chr(34) & ">glc&gt;1&gt;{8B382828-6202-11D1-8870-0000F87579D2}&gt;NoGuid</PropertyValue>")
+
+            
+            Set userSettingsFile = fileSystem.OpenTextFile(subfolder + "\Settings\CurrentSettings.vssettings", 2)
+            userSettingsFile.WriteLine content
+            usersettingsFile.close()
+        End If
+    Next
+
+	
+End Sub
+
+
+Sub UpdateProgress()
+    If PythonLocation() <> "" and pythonVersion >= REQUIRED_PYTHON_VERSION Then document.getElementById("pythonprogress").innerHTML = CHECKED End IF
+    If GetOutput("where svn") <> "" Then document.getElementById("svnprogress").innerHTML = CHECKED End IF
+    If wshShell.ExpandEnvironmentStrings("%G3D10DATA%") <> "" And wshShell.ExpandEnvironmentStrings("%G3D10DATA%") <> "%G3D10DATA%" Then document.getElementById("envprogress").innerHTML = CHECKED End IF
+    If GetOutput("where doxygen") <> "" Then document.getElementById("doxygenprogress").innerHTML = CHECKED End IF
+    If (FileExists(wshShell.ExpandEnvironmentStrings("%programfiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe")) or FileExists(wshShell.ExpandEnvironmentStrings("%programfiles(x86)%\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe")) or FileExists(wshShell.ExpandEnvironmentStrings("%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe")) or FileExists(wshShell.ExpandEnvironmentStrings("%G3D_VS_PATH%\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.exe")) or FileExists(wshShell.ExpandEnvironmentStrings("%G3D_VS_PATH%\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe")) or FileExists(wshShell.ExpandEnvironmentStrings("%G3D_VS_PATH%\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe"))) Then
+        document.getElementById("vsprogress").innerHTML = CHECKED 
+    End If
+
+    Dim configFilename : configFilename = wshShell.ExpandEnvironmentStrings("%homedrive%%homepath%\AppData\Local\Microsoft\MSBuild\v4.0\Microsoft.Cpp.x64.user.props")
+    On Error Resume Next
+    Set file = fileSystem.OpenTextFile(configFilename, 1)
+    If Err then
+        'Try for the local config file
+        Set file = fileSystem.OpenTextFile(wshShell.ExpandEnvironmentStrings("%userprofile%\AppData\Local\Microsoft\MSBuild\v4.0\Microsoft.Cpp.x64.user.props"), 1)
+    End If
+
+    dim content : content = file.ReadAll
+
+    file.Close()
+    
+    If FileExists(wshShell.ExpandEnvironmentStrings("%g3d%\G3D10\G3D-base.lib\include\G3D-base\G3D-base.h")) Then document.getElementById("codeprogress").innerHTML = CHECKED End IF
+    If FileExists(wshShell.ExpandEnvironmentStrings("%g3d%\G3D10\build\lib\G3D-app.lib")) Then document.getElementById("buildprogress").innerHTML = CHECKED End IF
+End Sub
+
+
+Sub UpdateEnv()
+    document.getElementById("userpath").innerHTML        = wshUserEnv("PATH")
+    document.getElementById("syspath").innerHTML         = wshSystemEnv("PATH")
+    document.getElementById("g3dvar").innerHTML          = wshShell.ExpandEnvironmentStrings("%g3d%")
+    document.getElementById("g3d10datavar").innerHTML   = wshShell.ExpandEnvironmentStrings("%G3D10DATA%")
+End Sub
+
+Sub Window_onLoad
+    document.getElementById("pythonreqver").innerHTML    = "" & REQUIRED_PYTHON_VERSION
+    window.resizeTo 950, 700
+    wshShell.CurrentDirectory = ScriptDirectory()
+    window.setTimeout "document.getElementById(""os"").innerHTML = OSVersion()", 0, "VBScript"
+    window.setTimeout "document.getElementById(""computer"").innerHTML = ComputerName()", 50, "VBScript"
+    window.setTimeout "document.getElementById(""user"").innerHTML = UserName()", 100, "VBScript"
+    window.setTimeout "document.getElementById(""gpu"").innerHTML = GPUInfo()", 200, "VBScript"
+    window.setTimeout "UpdatePythonInfo", 300, "VBScript"
+    window.setTimeout "UpdateEnv", 350, "VBScript"
+    window.setTimeout "UpdateProgress", 375, "VBScript"
+    window.setTimeout "AppendToLog ""Done detecting configuration.""", 400, "VBScript"    
+    window.setTimeout "document.getElementById(""install"").disabled = False", 500, "VBScript"
+End Sub
+
+
+Sub InstallG3D
+    EnsurePython3IsInstalled
+    EnsureDoxygenIsInstalled
+    EnsureSVNIsInstalled
+    SetG3DVarsIfNeeded
+    CheckoutG3DIfNeeded
+    InstallMSVCIfNeeded
+    ConfigureSyntaxHighlightingIfNeeded
+    
+    If Not FileExists(wshShell.ExpandEnvironmentStrings("%g3d%\G3D10\build\lib\G3D-app.lib")) Then
+		AppendToLog "Checking out G3D data directory..."
+		Run "svn", "co --depth infinity svn://svn.code.sf.net/p/g3d/code/data10 %g3d%/data10", False, 1
+        AppendToLog "Running 'buildg3d local'..."
+        dim success : success = wshShell.Run("cmd.exe /c cd %g3d%\G3D10 & buildg3d local", 1, True)
+        UpdateProgress
+        AppendToLog "Done building."
+    Else
+        AppendToLog("G3D-app.lib is already built")
+    End If
+End Sub
+
+
+</script>
+<style>
+h1 {
+    font-size: 18px;
+    border-bottom: solid 2px #E56C1D;
+    width: 100%;
+    color: #E56C1D;
+}
+
+body {
+    font-family: Arial;
+    font-size: 14px;
+}
+
+table {
+    font-size: 14px;
+}
+
+pre#log {
+    border: 1px solid #CCC;
+    height: 130px;
+    width: 100%;
+    padding: 2px;
+    overflow: scroll;
+}
+
+</style>
+<body>
+<table><tr valign="top"><td>
+<input id="install" type="button" value="Install G3D" name="run_button" onClick="InstallG3D" disabled="True" style="height: 45px; font-weight: bold;">
+</td>
+<td width="20px"> </td>
+<td>
+Press to automatically download, install, and configure all components listed below needed for developing 3D and VR 
+programs using the G3D Innovation Engine. Some installers may prompt for permission to continue. Already-installed components will not be affected, so 
+it is safe to run the installer multiple times if interrupted by rebooting.
+</td></tr></table>
+
+<h1>Progress</h1>
+<table cellpadding=9 style="margin-left:-10px">
+<tr>
+<td><span id="pythonprogress">&#9744;</span>&nbsp;Python&nbsp;<span id="pythonreqver"></span></td>
+<td><span id="svnprogress">&#9744;</span>&nbsp;SVN</td>
+<td><span id="doxygenprogress">&#9744;</span>&nbsp;Doxygen</td>
+<td><span id="envprogress">&#9744;</span>&nbsp;Environment&nbsp;Vars</td>
+<td><span id="vsprogress">&#9744;</span>&nbsp;Visual&nbsp;Studio&nbsp;2019</td>
+<td><span id="codeprogress">&#9744;</span>&nbsp;Source&nbsp;Code</td>
+<td><span id="buildprogress">&#9744;</span>&nbsp;Build&nbsp;G3D</td>
+</tr>
+</table>
+<pre id="log">Running installg3dwin.<br/>Detecting configuration...<br/></pre>
+
+<h1>Configuration</h1>
+<table cellpadding=5>
+ <tr><td width="150">OS:</td><td id="os">detecting...</td></tr>
+ <tr><td>Computer:</td><td id="computer">detecting...</td></tr>
+ <tr><td>User:</td><td id="user">detecting...</td></tr>
+ <tr valign="top"><td>GPU:</td><td id="gpu">detecting...</td></tr>
+ <tr valign="top"><td>Python:</td><td><span id="pypath">detecting...</span><br/><span id="pyver"></span></td></tr>
+ <tr valign="top"><td>User %PATH%:</td><td><span id="userpath">detecting...</span></td></tr>
+ <tr valign="top"><td>System %PATH%:</td><td><span id="syspath">detecting...</span></td></tr>
+ <tr valign="top"><td>%g3d%:</td><td><span id="g3dvar">detecting...</span></td></tr>
+ <tr valign="top"><td>%G3D10DATA%:</td><td><span id="g3d10datavar">detecting...</span></td></tr>
+</table>
+
+    If you experience problems with this BETA installer, please email <a href="mailto:morgan@casual-effects.com">morgan@casual-effects.com</a> to report
+    the error or post to the <a href="mailto:g3d-users@googlegroups.com">g3d-users@googlegroups.com</a> mailing list.
+</body>

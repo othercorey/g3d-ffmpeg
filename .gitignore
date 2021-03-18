@@ -1,0 +1,16 @@
+# python files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ice files
+.ice-tmp/
+ice-stats.csv
+
+# visual studio files
+msbuild.log
+
+# build files
+/build
+/temp
+
