@@ -2,7 +2,7 @@
   \file G3D-base.lib/include/G3D-base/MeshAlg.h
 
   G3D Innovation Engine http://casual-effects.com/g3d
-  Copyright 2000-2019, Morgan McGuire
+  Copyright 2000-2021, Morgan McGuire
   All rights reserved
   Available under the BSD License
 */
@@ -168,6 +168,17 @@ public:
          indicates a boundary (a.k.a. crack, broken) edge.
          */
         int                     faceIndex[2];
+
+        bool operator==(const Edge& other) const {
+            return (vertexIndex[0] == other.vertexIndex[0]) &&
+                (vertexIndex[1] == other.vertexIndex[1]) &&
+                (faceIndex[0] == other.faceIndex[0]) &&
+                (faceIndex[1] == other.faceIndex[1]);
+        }
+
+        bool operator!=(const Edge& other) const {
+            return !(*this == other);
+        }
         
         /** Returns true if f is contained in the faceIndex array in either slot.
             To see if it is forward in that face, just check edge.faceIndex[0] == f.*/
@@ -194,6 +205,21 @@ public:
             e.faceIndex[1]   = faceIndex[0];
             return e;
         }
+
+
+        /** Returns the index in \a edgeArray of the reverse directed Edge in the
+            adjacent Face.
+        
+            At a mesh boundary, returns -1. For a nonmanifold or degenerate mesh Face,
+            returns one of the multiple twins.
+        */
+        int twinIndex(const Array<Edge>& edgeArray, const Array<Face>& faceArray) const;
+
+        /** Returns the index into the \a edgeArray of the next Edge along the winding direction
+            of the Face containing this. Returns -1 if the data structure is inconsistent and 
+            this edge is not found in its containing face.*/
+        int nextEdgeIndexInFace(const Array<Edge>& edgeArray, const Array<Face>& faceArray) const;
+
     };
     
 

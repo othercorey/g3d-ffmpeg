@@ -22,6 +22,38 @@ namespace G3D {
 
 const int MeshAlg::Face::NONE             = INT_MIN;
 
+
+
+int MeshAlg::Edge::twinIndex(const Array<MeshAlg::Edge>& edgeArray, const Array<MeshAlg::Face>& faceArray) const {
+    // Neighbor face
+    const Face& face = faceArray[faceIndex[1]];
+    for (int e = 0; e < 3; ++e) {
+        const Edge& other = edgeArray[face.edgeIndex[e]];
+        // Is other the twin of this?
+        if (other.vertexIndex[0] == vertexIndex[1] && other.vertexIndex[1] == vertexIndex[0]) {
+            return face.edgeIndex[e];
+        }
+    }
+    return -1;
+}
+
+
+int MeshAlg::Edge::nextEdgeIndexInFace(const Array<MeshAlg::Edge>& edgeArray, const Array<MeshAlg::Face>& faceArray) const {
+    // Containing face
+    const Face& face = faceArray[faceIndex[0]];
+
+    // Find my index
+    for (int e = 0; e < 3; ++e) {
+        const Edge& other = edgeArray[face.edgeIndex[e]];
+        // Don't trust the pointers because an Edge could have been copied by value
+        if (other == *this) {
+            return face.edgeIndex[nextMod3(e)];
+        }
+    }
+    return -1;
+
+}
+
 void MeshAlg::generateGrid(
     Array<Vector3>&     vertex,
     Array<Vector2>&     texCoord,

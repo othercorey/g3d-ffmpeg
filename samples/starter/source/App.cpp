@@ -324,25 +324,3 @@ void App::onCleanup() {
     // Called after the application loop ends.  Place a majority of cleanup code
     // here instead of in the constructor so that exceptions can be caught.
 }
-
-void App::drawDebugShapes() {
-    GApp::drawDebugShapes();
-
-    const shared_ptr<DefaultRenderer>& defaultRenderer = dynamic_pointer_cast<DefaultRenderer>(m_renderer);
-
-    if (isNull(defaultRenderer)) {
-        return;
-    }
-
-    const Array<shared_ptr<DDGIVolume>>& volumeArray = scene()->lightingEnvironment().ddgiVolumeArray;
-
-    // Draw debug shapes for the DDGIVolume.
-    for (int i = 0; i < volumeArray.size(); ++i) {
-        if (defaultRenderer->m_showProbeLocations[i]) {
-            // TODO: enable probe visualization radius.
-            float radius = 0.1f;
-            // TODO: enable depth visualization from second to last parameter.
-            defaultRenderer->m_ddgiVolumeArray[i]->debugRenderProbeVisualization(renderDevice, activeCamera(), false, radius);
-        }
-    }
-}

@@ -57,9 +57,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>call python "$(ProjectDir)..\scripts\svnrevision.py"
+      <Command>call py -3 "$(ProjectDir)..\scripts\svnrevision.py"
 
-call python "$(ProjectDir)..\scripts\imageformat.py"
+call py -3 "$(ProjectDir)..\scripts\imageformat.py"
 
 </Command>
     </PreBuildEvent>
@@ -88,9 +88,9 @@ call python "$(ProjectDir)..\scripts\imageformat.py"
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>call python "$(ProjectDir)..\scripts\svnrevision.py"
+      <Command>call py -3 "$(ProjectDir)..\scripts\svnrevision.py"
 
-call python "$(ProjectDir)..\scripts\imageformat.py"
+call py -3 "$(ProjectDir)..\scripts\imageformat.py"
 
 </Command>
     </PreBuildEvent>

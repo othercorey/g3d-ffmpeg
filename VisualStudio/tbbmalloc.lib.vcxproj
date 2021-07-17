@@ -50,8 +50,8 @@
       <PreprocessorDefinitions>__TBBMALLOC_BUILD;USE_WINTHREAD;DO_ITT_NOTIFY;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <PostBuildEvent>
-      <Command>call python "$(Solution)..\bin\ice\copyifnewer.py" "$(SolutionDir)\..\temp\$(ProjectName)\$(Configuration)\Output\*.dll" "$(SolutionDir)..\build\bin"
-call python "$(Solution)..\bin\ice\copyifnewer.py" "$(SolutionDir)\..\temp\$(ProjectName)\$(Configuration)\Output\*.lib" "$(SolutionDir)..\build\lib"
+      <Command>call py -3 "$(Solution)..\bin\ice\copyifnewer.py" "$(SolutionDir)\..\temp\$(ProjectName)\$(Configuration)\Output\*.dll" "$(SolutionDir)..\build\bin"
+call py -3 "$(Solution)..\bin\ice\copyifnewer.py" "$(SolutionDir)\..\temp\$(ProjectName)\$(Configuration)\Output\*.lib" "$(SolutionDir)..\build\lib"
 </Command>
       <Message>Copying tbb.dll and tbb.lib to build directory</Message>
     </PostBuildEvent>

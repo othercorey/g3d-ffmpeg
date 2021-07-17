@@ -100,6 +100,8 @@ public:
     bool operator!=(const Matrix2x3& other) const;
     bool operator==(const Matrix2x3& other) const;
 
+    class Vector2 operator*(const class Vector3& v) const;
+
     String toString() const;
 };
 
