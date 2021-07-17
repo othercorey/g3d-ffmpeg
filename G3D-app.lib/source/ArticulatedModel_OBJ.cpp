@@ -136,11 +136,12 @@ MTL illum constants:
 
 10     Casts shadows onto invisible surfaces 
 */
-static UniversalMaterial::Specification toMaterialSpecification
-(const ArticulatedModel::Specification& modelSpec, 
- const shared_ptr<ParseMTL::Material>&  m,
- AlphaFilter a,
- RefractionHint r) {
+UniversalMaterial::Specification ArticulatedModel::Specification::convertMTLToUniversalMaterialSpecification
+(   const shared_ptr<ParseMTL::Material>& m,
+    AlphaFilter a,
+    RefractionHint r) const {
+
+    const ArticulatedModel::Specification& modelSpec = *this;
 
     UniversalMaterial::Specification s;
     String filename;
@@ -351,7 +352,7 @@ void ArticulatedModel::loadOBJ(const Specification& specification) {
             if (specification.stripMaterials) {
                 materialSpecificationIndexArray.append(0);
             } else {
-                const UniversalMaterial::Specification& s = toMaterialSpecification(specification, srcMesh->material, specification.alphaFilter, specification.refractionHint);
+                const UniversalMaterial::Specification& s = specification.convertMTLToUniversalMaterialSpecification(srcMesh->material, specification.alphaFilter, specification.refractionHint);
                 bool created = false;
                 int& materialIndex = materialSpecificationIndexTable.getCreate(s, created);
                 if (created) {

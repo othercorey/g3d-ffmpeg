@@ -276,7 +276,9 @@ FileSystem::Dir& FileSystem::getContents(const String& path, bool forceUpdate) {
 
 bool FileSystem::_inZipfile(const String& _path, String& z, String& internalFile) {
     String path = FilePath::canonicalize(FilePath::expandEnvironmentVariables(_path));
-
+    
+    /* Does not work for code with ../../ in it
+    
     // Collapse "/X/../" subpaths to "/". This won't work correctly with
     // symlinks, but it greatly simplifies the checking below.
     for (size_t i = path.find("/../"); i > 0 && i != String::npos; i = path.find("/../")) {
@@ -284,6 +286,7 @@ bool FileSystem::_inZipfile(const String& _path, String& z, String& internalFile
         const size_t j = path.rfind("/", i - 1);
         path = path.substr(0, j + 1) + path.substr(i + 4);
     }
+    */
 
     // Look at all sub-paths. For each, ask if it is a zipfile.
     size_t current = 0;

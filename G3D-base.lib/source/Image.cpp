@@ -1112,12 +1112,18 @@ static const ImageFormat* determineImageFormat(const fipImage* image) {
             imageFormat = ImageFormat::RGBA32F();
             break;
 
+        case FIT_RGB16:
+            imageFormat = ImageFormat::RGB16();
+            break;
+
+        case FIT_RGBA16:
+            imageFormat = ImageFormat::RGBA16();
+            break;
+
         case FIT_INT16:
         case FIT_UINT32:
         case FIT_INT32:
         case FIT_DOUBLE:
-        case FIT_RGB16:
-        case FIT_RGBA16:
         case FIT_COMPLEX:
         default:
             debugAssertM(false, "Unsupported FreeImage type loaded.");

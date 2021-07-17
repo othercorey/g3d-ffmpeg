@@ -54,27 +54,26 @@ Line Capsule::axis() const {
 float Capsule::volume() const {
     return 
         // Sphere volume
-        pow(_radius, 3) * (float)pi() * 4 / 3 +
+        (_radius * _radius * _radius) * pif() * 4.0f / 3.0f +
 
         // Cylinder volume
-        pow(_radius, 2) * (p1 - p2).magnitude();
+        (_radius * _radius) * (p1 - p2).magnitude();
 }
 
 
 float Capsule::area() const {
-
     return
         // Sphere area
-        pow(_radius, 2) * 4 * (float)pi() +
+       (_radius * _radius) * 4.0f * pif() +
 
         // Cylinder area
-        (float)twoPi() * _radius * (p1 - p2).magnitude();
+        2.0f * pif() * _radius * (p1 - p2).magnitude();
 }
 
 
 void Capsule::getBounds(AABox& out) const {
-    Vector3 min = p1.min(p2) - (Vector3(1, 1, 1) * _radius);
-    Vector3 max = p1.max(p2) + (Vector3(1, 1, 1) * _radius);
+    const Vector3& min = p1.min(p2) - (Vector3(1, 1, 1) * _radius);
+    const Vector3& max = p1.max(p2) + (Vector3(1, 1, 1) * _radius);
 
     out = AABox(min, max);
 }
@@ -98,7 +97,6 @@ void Capsule::getRandomSurfacePoint(Vector3& p, Vector3& N, Random& rnd) const {
     float r1 = rnd.uniform(0, capRelArea * 2 + sideRelArea);
 
     if (r1 < capRelArea * 2) {
-
         // Select a point uniformly at random on a sphere
         N = Sphere(Vector3::zero(), 1).randomSurfacePoint(rnd);
         p = N * r;

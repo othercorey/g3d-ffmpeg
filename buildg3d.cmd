@@ -1,2 +1,2 @@
 @echo off
-python buildg3d %*
+py -3 buildg3d %*

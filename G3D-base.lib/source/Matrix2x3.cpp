@@ -13,6 +13,8 @@
 #include "G3D-base/G3DString.h"
 #include "G3D-base/stringutils.h"
 #include "G3D-base/Any.h"
+#include "G3D-base/Vector2.h"
+#include "G3D-base/Vector3.h"
 
 
 namespace G3D {
@@ -71,6 +73,14 @@ String Matrix2x3::toString() const {
     return G3D::format("[%g, %g, %g; %g, %g %g]", 
             elt[0][0], elt[0][1], elt[0][2],
             elt[1][0], elt[1][1], elt[1][2]);
+}
+
+
+Vector2 Matrix2x3::operator*(const Vector3& v) const {
+    return Vector2(
+        elt[0][0] * v.x + elt[0][1] * v.y + elt[0][2] * v.z,
+        elt[1][0] * v.x + elt[1][1] * v.y + elt[1][2] * v.z);
+
 }
 
 

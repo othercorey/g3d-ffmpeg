@@ -441,7 +441,7 @@ Vector2 GLFWWindow::primaryDisplaySize() {
     debugAssert(notNull(primaryDisplay));
     const GLFWvidmode* vidMode = glfwGetVideoMode(primaryDisplay);
     debugAssert(notNull(vidMode));
-    return Vector2(vidMode->width, vidMode->height);
+    return Vector2(float(vidMode->width), float(vidMode->height));
 }
 
 Vector2 GLFWWindow::virtualDisplaySize() {

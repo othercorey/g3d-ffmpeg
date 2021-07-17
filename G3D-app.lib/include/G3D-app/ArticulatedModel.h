@@ -588,6 +588,13 @@ Example:
         bool operator==(const Specification& other) const;
 
         Any toAny() const;
+
+        /** Convert a legacy OBJ MTL specification to a physically-based UniversalMaterialSpecification
+            using the options from this. */
+        UniversalMaterial::Specification convertMTLToUniversalMaterialSpecification(
+            const shared_ptr<ParseMTL::Material>& m,
+            AlphaFilter a,
+            RefractionHint r) const;
     };
 
     class Part;

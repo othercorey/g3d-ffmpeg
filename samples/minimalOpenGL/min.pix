@@ -216,7 +216,7 @@ void main () {
         (baseColor, metallic, subsurface, specular, roughness, specularTint, anisotropic, sheen, sheenTint, clearcoat, clearcoatGloss, object.light, view, normal, tangentX, tangentY);
 
     // Direct light plus a very coarse ambient term, ignorant of BSDF
-    vec3 radiance = lightRadiance * bsdf + ambientRadiance * baseColor;
+    vec3 radiance = lightRadiance * bsdf * max(0.0, dot(normal, object.light)) + ambientRadiance * baseColor;
     pixelColor.rgb = pow(radiance, vec3(1.0 / 2.2));
 
     //Debug

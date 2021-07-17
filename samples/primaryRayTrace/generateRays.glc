@@ -188,12 +188,6 @@ void main() {
 
     float halfFOV = (FOVRadians / 2.0);
 
-
-    //float C = 2.0f * sin(FOVRadians / 4.0f);
-    //float a = (pi - halfFOV) / 2;
-    //float L = csProjectionOffset + 1;
-    //float M = sqrt(square(C) + square(L) - 2.0 * C * L * cos(a));
-
     float halfPanniniFOV = atan(sin(halfFOV), cos(halfFOV) + csProjectionOffset);
 
     vec2 hv = vec2(halfFOV, tan(halfFOV));
@@ -322,8 +316,8 @@ void main() {
     float radius = sqrt(uv.y);
 
     
-    float u = cos(angle) * radius;
-    float v = sin(angle) * radius;
+    float u = cos(angle) * sqrt(radius);
+    float v = sin(angle) * sqrt(radius);
 
 
     // Simplified from Camera.cpp.

@@ -155,7 +155,7 @@ public:
 
     /** Returns the current full field of view angle (from the left side of the
        viewport to the right side) and direction */
-    void getFieldOfView(float& angle, FOVDirection direction) const {
+    void getFieldOfView(float& angle, FOVDirection& direction) const {
         angle = m_fieldOfView;
         direction = m_direction;
     }

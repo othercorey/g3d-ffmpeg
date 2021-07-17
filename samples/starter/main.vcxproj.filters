@@ -14,8 +14,6 @@
     <ResourceCompile Include="resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="mainpage.dox" />
-    <None Include="Doxyfile" />
     <None Include="data-files\test.Scene.Any">
       <Filter>Scene Files</Filter>
     </None>

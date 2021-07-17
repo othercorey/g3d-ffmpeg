@@ -42,6 +42,20 @@ than TextInput).
 This is intentionally designed to map the file format into memory, not to process it further.
 That supports a number of modeling uses of the data beyond specific OpenGL-trimesh rendering.
 
+To iterate over the meshes, use:
+
+\code
+for (const ParseOBJ::GroupTable::Entry& groupEntry : parser.groupTable) {
+    const shared_ptr<ParseOBJ::Group>& group = groupEntry.value;
+
+    for (const ParseOBJ::MeshTable::Entry& meshEntry : group->meshTable) {
+        const shared_ptr<ParseOBJ::Mesh>& mesh = meshEntry.value;
+
+        ...
+    }
+}
+\endcode
+
 \sa G3D::ParseMTL, G3D::ParsePLY, G3D::Parse3DS, G3D::ArticulatedModel
 */
 class ParseOBJ {

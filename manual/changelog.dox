@@ -266,6 +266,11 @@
 	<li> Excluded Python and Embree from linking on ARM, since they use precompiled x64 binaries in the current build </li>
 	<li> Made G3D::String a typedef for std::string on legacy 32-bit platforms, since that class depends on a 8-byte aligned allocator that 32-bit runtimes do not necessarily provide. </li>
 	<li> Added support for OpenGL ES OSWindows.</li>
+    <li> Added G3D::nextMod3(). </li>
+    <li> Added G3D::Edge::twinIndex(). </li>
+    <li> Added G3D::Edge::nextEdgeIndexInFace(). </li>
+    <li> Added G3D::ArticulatedModel::Specification::convertMTLToUniversalMaterialSpecification. </li>
+    <li> Added G3D::Matrix2x3 * Vector3 operator </li>
     </ul>
    </p>
 
