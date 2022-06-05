@@ -315,6 +315,9 @@ def _findWindowsBinary(program):
     PATH = [''] + \
            ['.',\
            '../bin/',\
+		   PROGRAMFILES + '/Microsoft Visual Studio/2022/Enterprise/MSBuild/Current/Bin/',\
+		   PROGRAMFILES + '/Microsoft Visual Studio/2022/Professional/MSBuild/Current/Bin/',\
+		   PROGRAMFILES + '/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/',\
 		   PROGRAMFILESX86 + '/Microsoft Visual Studio/2019/Enterprise/MSBuild/Current/Bin/',\
 		   PROGRAMFILESX86 + '/Microsoft Visual Studio/2019/Professional/MSBuild/Current/Bin/',\
 		   PROGRAMFILESX86 + '/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/',\

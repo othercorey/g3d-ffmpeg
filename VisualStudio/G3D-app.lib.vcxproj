@@ -54,7 +54,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\external\glew.lib\include;$(SolutionDir)..\external\assimp.lib\include;$(SolutionDir)..\external\enet.lib\include;$(SolutionDir)..\external\glfw.lib\include;$(SolutionDir)..\external\nfd.lib\include;$(SolutionDir)..\external\zip.lib\include;$(SolutionDir)..\external\zlib.lib\include;$(SolutionDir)..\external\civetweb.lib\include;$(SolutionDir)../external/tbb/include;$(SolutionDir)../external/fmod/include;$(SolutionDir)../external\ffmpeg\win64\include;$(SolutionDir)../external/embree/include;$(SolutionDir)../external/openvr/include;$(SolutionDir)../G3D-base.lib/include;$(SolutionDir)../G3D-app.lib/include;$(SolutionDir)../G3D-gfx.lib/include;$(SolutionDir)../external/wave.lib/include;$(SolutionDir)../external/python/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\glslang;$(SolutionDir)..\external\vulkan\include;$(SolutionDir)..\external\waveVK.lib\include;$(SolutionDir)..\external\glew.lib\include;$(SolutionDir)..\external\assimp.lib\include;$(SolutionDir)..\external\enet.lib\include;$(SolutionDir)..\external\glfw.lib\include;$(SolutionDir)..\external\nfd.lib\include;$(SolutionDir)..\external\zip.lib\include;$(SolutionDir)..\external\zlib.lib\include;$(SolutionDir)..\external\civetweb.lib\include;$(SolutionDir)../external/tbb/include;$(SolutionDir)../external/fmod/include;$(SolutionDir)../external\ffmpeg\win64\include;$(SolutionDir)../external/embree/include;$(SolutionDir)../external/openvr/include;$(SolutionDir)../G3D-base.lib/include;$(SolutionDir)../G3D-app.lib/include;$(SolutionDir)../G3D-gfx.lib/include;$(SolutionDir)../external/wave.lib/include;$(SolutionDir)../external/python/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -71,7 +71,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\external\glew.lib\include;$(SolutionDir)..\external\assimp.lib\include;$(SolutionDir)..\external\enet.lib\include;$(SolutionDir)..\external\glfw.lib\include;$(SolutionDir)..\external\nfd.lib\include;$(SolutionDir)..\external\zip.lib\include;$(SolutionDir)..\external\zlib.lib\include;$(SolutionDir)..\external\civetweb.lib\include;$(SolutionDir)../external/tbb/include;$(SolutionDir)../external/fmod/include;$(SolutionDir)../external\ffmpeg\win64\include;$(SolutionDir)../external/embree/include;$(SolutionDir)../external/openvr/include;$(SolutionDir)../G3D-base.lib/include;$(SolutionDir)../G3D-app.lib/include;$(SolutionDir)../G3D-gfx.lib/include;$(SolutionDir)../external/wave.lib/include;$(SolutionDir)../external/python/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external\glslang;$(SolutionDir)..\external\vulkan\include;$(SolutionDir)..\external\waveVK.lib\include;$(SolutionDir)..\external\glew.lib\include;$(SolutionDir)..\external\assimp.lib\include;$(SolutionDir)..\external\enet.lib\include;$(SolutionDir)..\external\glfw.lib\include;$(SolutionDir)..\external\nfd.lib\include;$(SolutionDir)..\external\zip.lib\include;$(SolutionDir)..\external\zlib.lib\include;$(SolutionDir)..\external\civetweb.lib\include;$(SolutionDir)../external/tbb/include;$(SolutionDir)../external/fmod/include;$(SolutionDir)../external\ffmpeg\win64\include;$(SolutionDir)../external/embree/include;$(SolutionDir)../external/openvr/include;$(SolutionDir)../G3D-base.lib/include;$(SolutionDir)../G3D-app.lib/include;$(SolutionDir)../G3D-gfx.lib/include;$(SolutionDir)../external/wave.lib/include;$(SolutionDir)../external/python/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -232,6 +232,7 @@
     <ClCompile Include="..\G3D-app.lib\source\VoxelModel.cpp" />
     <ClCompile Include="..\G3D-app.lib\source\VoxelSurface.cpp" />
     <ClCompile Include="..\G3D-app.lib\source\VRApp.cpp" />
+    <ClCompile Include="..\G3D-app.lib\source\VulkanTriTree.cpp" />
     <ClCompile Include="..\G3D-app.lib\source\Widget.cpp" />
     <ClCompile Include="..\G3D-app.lib\source\XRWidget.cpp" />
   </ItemGroup>
@@ -362,6 +363,7 @@
     <ClInclude Include="..\G3D-app.lib\include\G3D-app\VoxelModel.h" />
     <ClInclude Include="..\G3D-app.lib\include\G3D-app\VoxelSurface.h" />
     <ClInclude Include="..\G3D-app.lib\include\G3D-app\VRApp.h" />
+    <ClInclude Include="..\G3D-app.lib\include\G3D-app\VulkanTriTree.h" />
     <ClInclude Include="..\G3D-app.lib\include\G3D-app\Widget.h" />
     <ClInclude Include="..\G3D-app.lib\include\G3D-app\XRWidget.h" />
     <ClInclude Include="..\G3D-app.lib\include\G3D\G3D.h" />

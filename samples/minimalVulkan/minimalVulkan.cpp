@@ -13,7 +13,7 @@ const bool enableValidationLayers = true;
 
 // A list of standard validation layers.
 const std::vector<const char*> validationLayers = {
-    "VK_LAYER_LUNARG_standard_validation"
+    "VK_LAYER_KHRONOS_validation"
 };
 
 bool checkValidationLayerSupport() {
@@ -42,6 +42,7 @@ std::vector<const char*> getRequiredExtensions() {
 
     if (enableValidationLayers) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        //extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
     }
 
     return extensions;
@@ -970,7 +971,8 @@ int main() {
             instanceCreateInfo.enabledLayerCount = 0;
         }
 
-        if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance) != VK_SUCCESS) {
+        VkResult test = vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance);
+        if (test != VK_SUCCESS) {
             throw std::runtime_error("failed to create instance!");
         }
 

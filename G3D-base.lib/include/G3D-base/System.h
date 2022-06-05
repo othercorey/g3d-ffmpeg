@@ -16,6 +16,7 @@
 #include "G3D-base/BinaryFormat.h"
 #include "G3D-base/FileNotFound.h"
 #include "G3D-base/G3DString.h"
+#include <memory>
 #include <vector>
 
 
@@ -369,8 +370,35 @@ public:
 
 };
 
+
+/** 
+ \brief Implementation of a C++ Allocator (for example std::allocator) that uses G3D::System::malloc and G3D::System::free. 
+
+ All instances of g3d_allocator are stateless.
+
+ \sa G3D::MemoryManager, G3D::System::malloc, G3D::System::free
+*/
+template<class T>
+class g3d_allocator {
+public:
+    /** Allocates n * sizeof(T) bytes of uninitialized storage by calling G3D::System::malloc() */
+    [[nodiscard]] constexpr T* allocate(std::size_t n) {
+        return static_cast<T*>(System::malloc(sizeof(T) * n));
+    }
+
+    /** Deallocates the storage referenced by the pointer p, which must be a pointer obtained by an earlier call to allocate() */
+    constexpr void deallocate(T* p, std::size_t n) {
+        System::free(p);
+    }
+};
+
 } // namespace G3D
 
+// https://en.cppreference.com/w/cpp/memory/allocator/operator_cmp
+template< class T1, class T2 >
+constexpr bool operator==( const G3D::g3d_allocator<T1>& lhs, const G3D::g3d_allocator<T2>& rhs ) noexcept {
+    return true;
+}
 
 #ifdef G3D_OSX
 #undef Zone

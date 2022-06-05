@@ -303,7 +303,7 @@ public:
     virtual void createProbeVolumes(const AABox& sceneBounds, LightingEnvironment& environment, const shared_ptr<Camera>& camera);
 
     /** Resolve probe states and update the irradiance probe volume. */
-    void updateDiffuseGI(RenderDevice* rd,
+    virtual void updateDiffuseGI(RenderDevice* rd,
         const shared_ptr<Scene>& scene,
         const shared_ptr<GBuffer>& primaryGBuffer,
         const shared_ptr<Camera>& camera);

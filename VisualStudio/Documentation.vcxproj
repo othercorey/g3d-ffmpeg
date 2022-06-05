@@ -7,6 +7,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\data10\research\scene\G3D_Simple_Rough_Transparency.Scene.Any" />
     <None Include="..\bin\icompile.html" />
     <None Include="..\doc-files\dark.css" />
     <None Include="..\Doxyfile" />

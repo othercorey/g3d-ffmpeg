@@ -709,7 +709,8 @@ Bold items are the ones used most frequently.
         \link G3D::G3DEndian G3DEndian\endlink,
         \link G3D::MemoryManager MemoryManager\endlink,
         \link G3D::System::free System::free\endlink,
-        \link G3D::System::malloc System::malloc\endlink
+        \link G3D::System::malloc System::malloc\endlink,
+        \link G3D::g3d_allocator g3d_allocator\endlink
      </td></tr>
 
 <tr valign=top><td><b>Native UI</b></td><td>

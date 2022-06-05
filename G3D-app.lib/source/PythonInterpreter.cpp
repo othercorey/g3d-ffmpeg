@@ -7,6 +7,7 @@
   All rights reserved
   Available under the BSD License
 */
+#ifdef G3D_WINDOWS
 #include "G3D-app/PythonInterpreter.h"
 
 // Undefine _DEBUG here so Python.h does not search for the debug library which is
@@ -176,3 +177,4 @@ void PythonInterpreter::call(const String& name, float& output, const Array<floa
 
 
 };
+#endif

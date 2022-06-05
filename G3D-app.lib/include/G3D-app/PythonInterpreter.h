@@ -36,7 +36,7 @@ namespace G3D {
  + We want to enforce the constraint (inherited from the API) that there can only be one python interpreter running at a time.
  + Providing a fully static interface without initializing an object would make it the resposibility of the programmer to call finishPython() at
    the correct point in their program, or the interpreter would never close.
- Making a singleton class ensures that there is only ever one python interpreter *and* it is automatically garbage collected
+ Making a singleton class ensures that there is only ever one python interpreter *and* it is automatically closed
  when the managing object is destroyed.
  */
 class PythonInterpreter {

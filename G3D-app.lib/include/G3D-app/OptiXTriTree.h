@@ -143,7 +143,7 @@ public:
 
     virtual const String& className() const override { static const String n = "OptiXTriTree"; return n; }
 
-    virtual void OptiXTriTree::rebuild() override {}
+    virtual void rebuild() override {}
 
     void intersectRays
        (const shared_ptr<GLPixelTransferBuffer>&          rayOrigins,

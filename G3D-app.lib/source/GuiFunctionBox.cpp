@@ -269,7 +269,7 @@ int GuiFunctionBox::getNearestControlPoint(const Vector2& pos) {
 
     // See if the discovered control point is within a reasonable distance.
     if (closestIndex != NONE) {
-        float distance = sqrt(closestDistance2);
+        const float distance = sqrt(closestDistance2);
 
         if (distance <= THRESHOLD) {
             return closestIndex;
@@ -277,21 +277,19 @@ int GuiFunctionBox::getNearestControlPoint(const Vector2& pos) {
     }
 
     // See if the curve itself is near the click point
-    int N = 100;
+    const int N = 100;
     closestDistance2 = finf();
     float closestT = 0;
     float closestV = 0;
 
     for (int i = 0; i < N; ++i) {
-        float t = (m_maxTime - m_minTime) * i / (N - 1.0f) + m_minTime;
-        float v = m_spline->evaluate(t);
+        const float t = (m_maxTime - m_minTime) * i / (N - 1.0f) + m_minTime;
+        const float v = m_spline->evaluate(t);
         
-        float x = m_bounds.x0() + m_bounds.width() * i / (N - 1.0f);
-        float y = m_bounds.y1() - (v - m_minValue) / m_scale.y;
+        const float x = m_bounds.x0() + m_bounds.width() * i / (N - 1.0f);
+        const float y = m_bounds.y1() - (v - m_minValue) / m_scale.y;
 
-        Vector2 loc(x, y);
-
-        float distance2 = (loc - pos).squaredLength();
+        const float distance2 = (Vector2(x, y) - pos).squaredLength();
 
         if (distance2 < closestDistance2) {
             closestT = t;
@@ -344,8 +342,8 @@ void GuiFunctionBox::drawControlPoints(RenderDevice* rd, const shared_ptr<GuiThe
         SlowMesh slowMesh(PrimitiveType::POINTS); 
         slowMesh.setPointSize(size + 4.0f);
         slowMesh.setColor(m_controlColor);
-            const Vector2& loc = controlPointLocation(m_selected);
-            slowMesh.makeVertex(loc);
+        const Vector2& loc = controlPointLocation(m_selected);
+        slowMesh.makeVertex(loc);
         slowMesh.render(rd, coverageSamples);
     }
 

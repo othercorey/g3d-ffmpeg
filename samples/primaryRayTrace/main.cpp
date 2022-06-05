@@ -38,7 +38,6 @@ protected:
 
     float                                   m_focusDistance = 0.0f;
 
-
     virtual void makeGUI();
 
     void computeLensParameters(float lensRadius, float focusPlaneZ);
@@ -54,7 +53,7 @@ public:
 
 void App::computeLensParameters(float lensRadius, float focusPlaneZ) {
     m_focalLength = abs(focusPlaneZ) / abs(focusPlaneZ + 1.0f);
-    m_fStop = abs(m_focalLength / lensRadius);
+    m_fStop = abs(m_focalLength / (2.0f * lensRadius));
     m_camToLens = 1.0f;
 }
 
@@ -197,11 +196,6 @@ void App::onGraphics3D(RenderDevice* rd, Array<shared_ptr<Surface> >& surface3D)
         m_frameIndex = 0;
     }
 
-    // Hack for screenshots
-    if (m_frameIndex == 127 && m_subPixelJitter) {
-        screenCapture()->takeScreenshot("png", false);
-    }
-
 
     swapBuffers();
     rd->clear();
@@ -246,12 +240,14 @@ void App::onInit() {
         //"G3D Sponza"
         //"G3D Sibenik (Projection)"
 #       else
-            "G3D Simple Cornell Box (Area Light)"
+        "G3D Simple Cornell Box (Area Light)"
+        //"G3D Simple Motion"
 #       endif
     );
 
     makeGUI();
 }
+
 
 void App::makeGUI() {
     developerWindow->setVisible(false);
@@ -266,8 +262,8 @@ void App::makeGUI() {
     debugWindow->setRect(Rect2D::xywh(0, 0, PANEL_WIDTH, float(window()->height())));
     debugPane->setRect(Rect2D::xywh(0, 0, PANEL_WIDTH, float(window()->height())));
 
-    debugCamera()->setFieldOfViewDirection(FOVDirection::HORIZONTAL);
-    debugCamera()->setFieldOfViewAngle(toRadians(150));
+    //debugCamera()->setFieldOfViewDirection(FOVDirection::HORIZONTAL);
+    //debugCamera()->setFieldOfViewAngle(toRadians(150));
     showRenderingStats = false;
     setActiveCamera(m_debugCamera);
 
@@ -386,8 +382,7 @@ int main(int argc, const char* argv[]) {
 
     GApp::Settings settings(argc, argv);  
     settings.window.caption = "Primary Ray Tracing";
-    // TODO: restore
-    settings.window.width = OSWindow::primaryDisplayWindowSize().x * 2.0;
+    settings.window.width = OSWindow::primaryDisplayWindowSize().x;
     settings.window.height = OSWindow::primaryDisplayWindowSize().y;
     settings.window.resizable = true;
     settings.window.refreshRate = -1;

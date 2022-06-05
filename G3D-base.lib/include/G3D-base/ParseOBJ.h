@@ -401,7 +401,7 @@ private:
         }
 
         // Read optional exponent
-        if (*nextCharacter == 'e') {
+        if (*nextCharacter == 'e' || *nextCharacter == 'E') {
             consumeCharacter();
             const int e = readInt();
             f *= powf(10.0f, float(e));

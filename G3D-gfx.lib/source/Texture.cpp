@@ -1102,6 +1102,7 @@ shared_ptr<Texture> Texture::fromMemory
     info.lazyLoadable      = false;
     info.generateMipMaps   = generateMipMaps;
     info.preferSRGBForAuto = preferSRGBForAuto;
+    info.preprocess  = preprocess;
 
     t->completeCPULoading();
     t->completeGPULoading();
@@ -1567,6 +1568,7 @@ shared_ptr<Texture> Texture::fromMemory
     info.lazyLoadable      = false;
     info.generateMipMaps   = generateMipMaps;
     info.preferSRGBForAuto = preferSRGBForAuto;
+    info.preprocess  = preprocess;
 
     t->completeCPULoading();
     t->completeGPULoading();

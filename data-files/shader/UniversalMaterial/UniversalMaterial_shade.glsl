@@ -12,6 +12,7 @@
 #include <g3dmath.glsl>
 #include <UniversalMaterial/UniversalMaterial_sample.glsl>
 #include <AmbientOcclusion/AmbientOcclusion_sample.glsl>
+#include <LightingEnvironment/LightingEnvironment_uniforms.glsl>
 
 /**
 If ambientOcclusion_notNull is defined, assumes the following globals are bound:

@@ -271,6 +271,7 @@
     <li> Added G3D::Edge::nextEdgeIndexInFace(). </li>
     <li> Added G3D::ArticulatedModel::Specification::convertMTLToUniversalMaterialSpecification. </li>
     <li> Added G3D::Matrix2x3 * Vector3 operator </li>
+    <li> Added G3D::g3d_allocator for std data structure compability </li>
     </ul>
    </p>
 
