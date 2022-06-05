@@ -7,14 +7,14 @@
 #include <octahedral.glsl>
 
 #expect PROJECTION_ALGORITHM "enum"
-#define PLANAR     0
-#define FISHEYE    1
-#define LENSLET    2
-#define PANNINI    3
-#define OCTAHEDRAL 4
-#define THIN_LENS  5
-#define CUBE_MAP   6
-#define ORTHOGRAPHIC 7
+#define PLANAR          0
+#define FISHEYE         1
+#define LENSLET         2
+#define PANNINI         3
+#define OCTAHEDRAL      4
+#define THIN_LENS       5
+#define CUBE_MAP        6
+#define ORTHOGRAPHIC    7
 
 uniform Camera          camera;
 
@@ -40,7 +40,7 @@ layout(rgba32f) uniform writeonly image2D rayOrigin;
 layout(rgba32f) uniform writeonly image2D rayDirection;
 
 
-// Generate a cubemap ray given an axis (in camera space), a pixel coord on the 
+// Generate a cubemap ray given an axis (in camera space), a pixel coord on the
 // cubemap, the resolution of the face.
 // All other parameters can be inferred. if the coordinate system is known.
 vec3 generateCSCubeMapDirection(vec3 axis, vec2 cubeMapPixelCoord, vec2 resolution) {
@@ -69,7 +69,7 @@ void main() {
     float csEyeRayDirectionZ;
     Ray eyeRay;
 
-    // These indices are out of bounds. If we don't clamp the x coordinate 
+    // These indices are out of bounds. If we don't clamp the x coordinate
     // it wraps around and overwrites subsequent lines. So return early.
     if (gl_GlobalInvocationID.x >= g3d_FragCoordExtent.x) {
         return;
@@ -80,7 +80,7 @@ void main() {
     float maxDist = inf;
 
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
-    
+
 #   if PROJECTION_ALGORITHM == PLANAR
 
     float tanHalfAngle = tan(FOVRadians / 2.0);
@@ -88,9 +88,7 @@ void main() {
 
     vec2 pixel = vec2(gl_GlobalInvocationID.xy) + vec2(0.5f) - (g3d_FragCoordExtent.xy / 2.0);
 
-    pixel /= g3d_FragCoordExtent.x / 2.0f;
-
-    vec3 direction = normalize(vec3(vec2(pixel.x, -pixel.y) * tanHalfAngle, -1));
+    vec3 direction = normalize(vec3(vec2(pixel.x, -pixel.y) * tanHalfAngle / aspectScale, -1));
 
 
         //Ray CSRay = cameraRay(gl_GlobalInvocationID.xy, camera.projInfo);
@@ -112,37 +110,37 @@ void main() {
 
 #   elif PROJECTION_ALGORITHM == FISHEYE
 
-    float clampedHalfFOV = min(FOVRadians, pi) / 2.0;
+	float clampedHalfFOV = min(FOVRadians, pi) / 2.0;
 
-    vec2 angle = (gl_GlobalInvocationID.xy - g3d_FragCoordExtent / 2) * clampedHalfFOV;
+	vec2 angle = (gl_GlobalInvocationID.xy - g3d_FragCoordExtent / 2) * clampedHalfFOV;
 
-    if (FOVDirection == 0) {
-        // Fisheye - circle, 180 degree FOV horizontal
-        angle /= g3d_FragCoordExtent.x / 2;
-    }
-    else if (FOVDirection == 1) {
-        // Fisheye - cropped circle, 180 degree FOV vertical 
-        angle /= g3d_FragCoordExtent.y / 2;
-    }
-    else {
-        // Fisheye - full frame, 180 degree FOV diagonal
-        angle /= length(g3d_FragCoordExtent) / 2;
-    }
+	if (FOVDirection == 0) {
+		// Fisheye - circle, 180 degree FOV horizontal
+		angle /= (g3d_FragCoordExtent.x / 2);
+	}
+	else if (FOVDirection == 1) {
+		// Fisheye - cropped circle, 180 degree FOV vertical
+		angle /= (g3d_FragCoordExtent.y / 2);
+	}
+	else {
+		// Fisheye - full frame, 180 degree FOV diagonal
+		angle /= (length(g3d_FragCoordExtent) / 2);
+	}
 
-        vec3 dir;
-        if (length(angle) > 0.5 * pi) {
-            // TODO: G3D degenerate ray is: length(dir) == 0
-            // wave.lib degenerate rays is: dir.w < 0.
-            // So, we do both here, but wave.lib comes first. Weird things happen if wave.lib tries to cast a length(dir) == 0 ray...
-            dir = vec3(0);
-            maxDist = -1.0;
-        }
-        else {
-            dir = normalize(vec3(sin(angle.x), -sin(angle.y) * cos(angle.x), -cos(angle.x) * cos(angle.y)));
-        }
+	vec3 dir;
+	if (length(angle) > 0.5 * pi) {
+		// TODO: G3D degenerate ray is: length(dir) == 0
+		// wave.lib degenerate rays is: dir.w < 0.
+		// So, we do both here, but wave.lib comes first. Weird things happen if wave.lib tries to cast a length(dir) == 0 ray...
+		dir = vec3(0);
+		maxDist = -1.0;
+	}
+	else {
+		dir = normalize(vec3(sin(angle.x), -sin(angle.y) * cos(angle.x), -cos(angle.x) * cos(angle.y)));
+	}
 
-        eyeRay.direction = camera.frame * vec4(dir, 0);
-        eyeRay.origin = camera.frame * vec4(0, 0, 0, 1);
+	eyeRay.direction = camera.frame * vec4(dir, 0);
+	eyeRay.origin = camera.frame * vec4(0, 0, 0, 1);
 
 #   elif PROJECTION_ALGORITHM == LENSLET
         const float NUM_LENSES = 12;
@@ -190,22 +188,17 @@ void main() {
 
     float halfPanniniFOV = atan(sin(halfFOV), cos(halfFOV) + csProjectionOffset);
 
-    vec2 hv = vec2(halfFOV, tan(halfFOV));
-    vec2 hvPan = //vec2(halfPanniniFOV, halfPanniniFOV);
-        vec2(tan(halfPanniniFOV), tan(halfPanniniFOV)) * (1.0 + csProjectionOffset);
+    vec2 hvPan = vec2(tan(halfPanniniFOV), tan(halfPanniniFOV)) * (1.0 + csProjectionOffset);
 
-    
+
     if (FOVDirection == 0) {
-        hv *= (pixelCenterCoords / (halfFragCoordExtent.x));
         hvPan *= (pixelCenterCoords / (halfFragCoordExtent.x));
     }
     else if (FOVDirection == 1) {
-        hv *= (pixelCenterCoords / (halfFragCoordExtent.y));
         hvPan *= (pixelCenterCoords / (halfFragCoordExtent.y));
     }
     else {
         //Diagonal FOV
-        hv *= (pixelCenterCoords / length(halfFragCoordExtent));
         hvPan *= (pixelCenterCoords / length(halfFragCoordExtent));
     }
 
@@ -216,19 +209,19 @@ void main() {
 
     float xCoord = sin(hvPan.x) * M;
     float zCoord = (cos(hvPan.x) * M) - d;
-    
+
     float S = (d + 1) / (d + zCoord);
-    
+
     float yCoord = lerp(hvPan.y / S, zCoord * hvPan.y, verticalCompression);
         //lerp(tan(hv.y) / S, zCoord * hv.y / S, verticalCompression);
 
-    
+
     vec3 dir = normalize(vec3(xCoord, -yCoord, -zCoord));
 
     eyeRay.origin = camera.frame * vec4(0, 0, 0, 1);
     eyeRay.direction = camera.frame * vec4(dir, 0);
 
-#else 
+#else
     vec2 halfFragCoordExtent = vec2(g3d_FragCoordExtent / 2.0);
     vec2 pixelCenterCoords = vec2(gl_GlobalInvocationID.xy) + vec2(0.5f) - (halfFragCoordExtent);
 
@@ -272,37 +265,25 @@ void main() {
 #endif
 
 #   elif PROJECTION_ALGORITHM == OCTAHEDRAL
-    // TODO: this should be fibonacci
 
-    int dim = (int)g3d_FragCoordExtent.y;
+    int dim = int(g3d_FragCoordExtent.y);
 
-    int Xoffset = ((int)g3d_FragCoordExtent.x - (int)dim) / 2;
-    int Yoffset = ((int)g3d_FragCoordExtent.y - (int)dim) / 2;
-    int x = (int)gl_GlobalInvocationID.x - Xoffset;
-    int y = (int)gl_GlobalInvocationID.y - Yoffset;
+    int Xoffset = (int(g3d_FragCoordExtent.x) - int(dim)) / 2;
+    int Yoffset = (int(g3d_FragCoordExtent.y) - int(dim)) / 2;
+    int x = int(gl_GlobalInvocationID.x) - Xoffset;
+    int y = int(gl_GlobalInvocationID.y) - Yoffset;
     if (x > dim || x < 0) {
-        return; 
+        return;
     }
     if (y > dim || y < 0) {
         return;
     }
 
-
-    //int N = int(dim * dim);
-
-    //vec3 sphericalFibDir = sphericalFibonacci(x + y * dim, N);
-    //
-    //vec2 octTexelCoord = octEncode(normalize(-sphericalFibDir)) * vec2(dvec2(dim) / 2.0);
-
-    float octX = ((float)x - ((float)dim / 2.0f)) / ((float)dim / 2.0f);
-    float octY = ((float)y - ((float)dim / 2.0f)) / ((float)dim / 2.0f);
+    float octX = (float(x) - (float(dim) / 2.0f)) / (float(dim) / 2.0f);
+    float octY = (float(y) - (float(dim) / 2.0f)) / (float(dim) / 2.0f);
 
     vec3 octDir = octDecode(vec2(octX, octY));
 
-    // Translate back to top left 0.
-    //octTexelCoord += vec2(dim / 2.0f); 
-    //
-    //coord = ivec2((int)octTexelCoord.x + Xoffset, octTexelCoord.y + Yoffset);
     eyeRay.origin = camera.frame[3];
     eyeRay.direction = mat3x3(camera.frame) * normalize(vec3(octDir.x, -octDir.y, -octDir.z));
 #elif PROJECTION_ALGORITHM == THIN_LENS
@@ -313,12 +294,10 @@ void main() {
 
     // Re-map to disk
     float angle = uv.x * 2.0 * pi;
-    float radius = sqrt(uv.y);
+    float radius = uv.y;
 
-    
     float u = cos(angle) * sqrt(radius);
     float v = sin(angle) * sqrt(radius);
-
 
     // Simplified from Camera.cpp.
     //vec3 focusPoint = CSRay.direction * (-focusPlaneZ / dot(CSRay.direction, vec3(0,0,-1)));
@@ -326,108 +305,78 @@ void main() {
     // Second parametrization
     float focusPlane = (camToLens * focalLength) / (camToLens - focalLength);
     vec3 focusPoint = CSRay.direction * (focusPlane / dot(CSRay.direction, vec3(0, 0, -1)));
-
-    // Account for distance to lens:
-    //float circleOfConfusionRadius = lensRadius * abs((focusPlaneZ / 2.0) - focusPlaneZ) / focusPlaneZ;
-
-    //const float scale = (screenSize * 0.5f / tan(camera->fieldOfViewAngle() * 0.5f)) * camera->depthOfFieldSettings().lensRadius() /
-    //    (camera->depthOfFieldSettings().focusPlaneZ() * maxCoCRadiusPixels);
-
-    // Second parametrization.
-    float circleOfConfusionRadius = focalLength / fStop;
-        //(focalLength / fStop) * (camToLens - focusPlane) / camToLens;
+    float circleOfConfusionRadius = focalLength / (2.0f * fStop);
 
     vec3 origin = vec3(1, 0, 0) * (u * circleOfConfusionRadius) + vec3(0, 1, 0) * (v * circleOfConfusionRadius);
 
     vec3 direction = normalize(focusPoint - origin);
-
-    //float s = -sign(focusPlaneZ);
 
     eyeRay.origin = camera.frame * vec4(origin, 1);
     eyeRay.direction = mat3x3(camera.frame) * (direction);
 #elif PROJECTION_ALGORITHM == CUBE_MAP // cube map
 
 
-////////// HACK TO VISUALIZE CUBE MAP //////////
-const float NUM_LENSES = 6;
-const float BASELINE = 8;
-vec2 unitCoord = (gl_GlobalInvocationID.xy - g3d_FragCoordExtent / 2) / length(g3d_FragCoordExtent);
-float2 lensCenter = round(unitCoord * NUM_LENSES) / NUM_LENSES;
-float2 lensCoord = (unitCoord - lensCenter) * NUM_LENSES;
+    ////////// HACK TO VISUALIZE CUBE MAP //////////
+    const float NUM_LENSES = 6;
+    const float BASELINE = 8;
+    vec2 unitCoord = (gl_GlobalInvocationID.xy - g3d_FragCoordExtent / 2) / length(g3d_FragCoordExtent);
+    float2 lensCenter = round(unitCoord * NUM_LENSES) / NUM_LENSES;
+    float2 lensCoord = (unitCoord - lensCenter) * NUM_LENSES;
 
 
-vec3 axis;
-vec2 signVec = vec2(1);
+    vec3 axis;
+    vec2 signVec = vec2(1);
 
-if (lensCenter.x == 0.0f && lensCenter.y == 0.0f) {
-    axis = vec3(0, 0, -1);
-    signVec = vec2(1, -1);
-}
-else if (lensCenter.y > 0.0f) {
-    axis = vec3(0, -1, 0);
-}
-else if (lensCenter.y < 0.0f) {
-    axis = vec3(0, 1, 0);
-    signVec = vec2(1, -1);
-}
-else if (lensCenter.x > 0.0f) {
-    axis = vec3(1, 0, 0);
-    float t = lensCoord.x;
-    lensCoord.x = lensCoord.y;
-    lensCoord.y = t;
-    signVec = vec2(-1, 1);
-}
-else if (lensCenter.x > -0.25f) {
-    axis = vec3(-1, 0, 0);
-    float t = lensCoord.x;
-    lensCoord.x = lensCoord.y;
-    lensCoord.y = t;
-    signVec = vec2(-1, -1);
-} else {
-    axis = vec3(0, 0, 1);
-    signVec = vec2(-1);
-}
+    if (lensCenter.x == 0.0f && lensCenter.y == 0.0f) {
+        axis = vec3(0, 0, -1);
+        signVec = vec2(1, -1);
+    }
+    else if (lensCenter.y > 0.0f) {
+        axis = vec3(0, -1, 0);
+    }
+    else if (lensCenter.y < 0.0f) {
+        axis = vec3(0, 1, 0);
+        signVec = vec2(1, -1);
+    }
+    else if (lensCenter.x > 0.0f) {
+        axis = vec3(1, 0, 0);
+        float t = lensCoord.x;
+        lensCoord.x = lensCoord.y;
+        lensCoord.y = t;
+        signVec = vec2(-1, 1);
+    }
+    else if (lensCenter.x > -0.25f) {
+        axis = vec3(-1, 0, 0);
+        float t = lensCoord.x;
+        lensCoord.x = lensCoord.y;
+        lensCoord.y = t;
+        signVec = vec2(-1, -1);
+    } else {
+        axis = vec3(0, 0, 1);
+        signVec = vec2(-1);
+    }
 
-if (lensCenter.x > 0.25f || lensCenter.x < -0.45f) {
-    maxDist = -1;
-}
+    if (lensCenter.x > 0.25f || lensCenter.x < -0.45f) {
+        maxDist = -1;
+    }
 
-if ((abs(lensCenter.x) > 0.0f && abs(lensCenter.y) > 0.0f) || abs(lensCenter.y) > 0.25f) {
-    maxDist = -1;
-}
+    if ((abs(lensCenter.x) > 0.0f && abs(lensCenter.y) > 0.0f) || abs(lensCenter.y) > 0.25f) {
+        maxDist = -1;
+    }
 
-////////// HACK TO VISUALIZE CUBE MAP //////////
+    ////////// HACK TO VISUALIZE CUBE MAP //////////
 
-vec3 dir = generateCSCubeMapDirection(axis, lensCoord * signVec, vec2(1));
+    vec3 dir = generateCSCubeMapDirection(axis, lensCoord * signVec, vec2(1));
 
-eyeRay.direction = camera.frame * vec4(dir, 0);
-eyeRay.origin = camera.frame[3];
-
-
-//
-//int dim = (int)g3d_FragCoordExtent.y;
-//
-//int Xoffset = ((int)g3d_FragCoordExtent.x - (int)dim) / 2;
-//int Yoffset = ((int)g3d_FragCoordExtent.y - (int)dim) / 2;
-//int x = (int)gl_GlobalInvocationID.x - Xoffset;
-//int y = (int)gl_GlobalInvocationID.y - Yoffset;
-//
-//if (x > dim || x < 0 || y > dim || y < 0) {
-//    maxDist = -1;
-//}
-//
-//
-//
-//
-//eyeRay.origin = camera.frame[3];
-//eyeRay.direction = mat3x3(camera.frame) * generateCSCubeMapDirection(vec3(0,0,-1), vec2(x,y), vec2(dim));
+    eyeRay.direction = camera.frame * vec4(dir, 0);
+    eyeRay.origin = camera.frame[3];
 
 #else  // orthographic
 
-vec3 position = reconstructCSPosition(vec2(gl_GlobalInvocationID.xy) + pixelOffset, -1.0, camera.projInfo);
+    vec3 position = reconstructCSPosition(vec2(gl_GlobalInvocationID.xy) + pixelOffset, -1.0, camera.projInfo);
 
-eyeRay.origin = camera.frame * vec4(position.xy * FOVDistance, 0, 1);
-eyeRay.direction = camera.frame * vec4(0, 0, -1, 0);
+    eyeRay.origin = camera.frame * vec4(position.xy * FOVDistance, 0, 1);
+    eyeRay.direction = camera.frame * vec4(0, 0, -1, 0);
 
 #   endif
 

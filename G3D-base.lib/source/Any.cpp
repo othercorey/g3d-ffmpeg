@@ -332,7 +332,7 @@ bool Any::containsKey(const String& x) const {
 
 
 void Any::dropReference() {
-    if (m_data && (m_data->referenceCount.fetch_sub(1) <= 0)) {
+    if (m_data && (m_data->referenceCount.fetch_sub(1) <= 1)) {
         // This was the last reference to the shared data
         Data::destroy(m_data);
     }
@@ -935,13 +935,13 @@ void Any::load(const String& filename) {
 }
 
 
-void Any::save(const String& filename) const {
+void Any::save(const String& filename, bool json) const {
     beforeRead();
     TextOutput::Settings settings;
     settings.wordWrap = TextOutput::Settings::WRAP_NONE;
 
     TextOutput to(filename, settings);
-    const bool json = endsWith(toLower(filename), ".json");
+    json = json || endsWith(toLower(filename), ".json");
     serialize(to, json, json);
     to.commit();
 }

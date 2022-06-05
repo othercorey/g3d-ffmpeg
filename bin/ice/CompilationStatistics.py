@@ -128,9 +128,9 @@ def generateStatistics(state):
     # count routines. -t will make it count typedefs and enums, but that throws
     # off our average statement count
 
-    # Do we have Exuberant Ctags?
+    # Do we have Universal (Exuberant) Ctags?
     try:
-        hasExuberant = (subprocess.check_output('ctags --version', shell=True)).decode("utf-8").startswith("Exuberant")
+        hasExuberant = 'Exuberant' in (subprocess.check_output('ctags --version', shell=True)).decode('utf-8')
     except:
         maybeWarn("Cannot run ctags, which is necessary for statistics generation.\n On macOS, run Xcode once as an administrator to initialize command line tools.", state)
         sys.exit(1)
@@ -138,7 +138,7 @@ def generateStatistics(state):
         stats.routines = int(subprocess.check_output('ctags -xw --c++-kinds=f ' + (' '.join(files)) + ' | wc -l', shell=True))
         stats.classes  = int(subprocess.check_output('ctags -xw --c++-kinds=c ' + (' '.join(files)) + ' | wc -l', shell=True))
     else:
-        maybeWarn('Using old ctags instead of exuberant ctags. Upgrade with "sudo port install ctags" on macOS or "sudo apt install exuberant-ctags" on Linux (http://ctags.sf.net/) for better summary information.', state)
+        maybeWarn('Using old ctags instead of universal ctags. Use "conda install -c conda-forge universal-ctags" or see https://github.com/universal-ctags/ctags for more information', state)
         stats.routines = int(subprocess.check_output('ctags -xw ' + (' '.join(files)) + ' | wc -l', shell=True))
         stats.classes = 0
 

@@ -355,9 +355,15 @@ img.forEachPixel(std::bind<tracePixel, this>);
         set(pos, get<ColorN>(pos) + color);
     }
 
-    /** \sa set, nearestIncrement, bilinearIncrement */
+    /** \sa set, nearestIncrement, bilinearIncrement 
+        Not thread safe, but will be when atomic float
+        is supported by all compilers.
+    */
     template <class ColorN>
     void increment(const Point2int32& pos, const ColorN& color, WrapMode wrapMode) {
+        // Could be thread-safe to implement with atomic float
+        // but that's not supported by clang (as of October 2021).
+        // https://en.cppreference.com/w/cpp/compiler_support
         set(pos, get<ColorN>(pos, wrapMode) + color, wrapMode);
     }
 

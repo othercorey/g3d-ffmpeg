@@ -414,6 +414,7 @@ def libTarget():
             'External Libraries\\glslang\\OSDependent',
             'External Libraries\\glslang\\SPIRV',
             'External Libraries\\glslang\\SPVRemapper',
+            'External Libraries\\waveVK.lib',
             'G3D-base.lib',
             'G3D-gfx.lib',
             'G3D-app.lib'])
@@ -475,6 +476,7 @@ def libTarget():
 
         if windows:
             if x == 0: x = runicompile('external/glslang')
+            if x == 0: x = runicompile('external/waveVK.lib')
 
         if x == 0: x = runicompile('G3D-base.lib')
 

@@ -2,7 +2,7 @@
   \file G3D-gfx.lib/include/G3D-gfx/Texture.h
 
   G3D Innovation Engine http://casual-effects.com/g3d
-  Copyright 2000-2019, Morgan McGuire
+  Copyright 2000-2021, Morgan McGuire
   All rights reserved
   Available under the BSD License
 */
@@ -292,6 +292,11 @@ public:
 
         /** 1.0 = stretch a unit vector to maxMotionVectorLength in the visualization. */
         float            motionVectorScale = 1.0f;
+
+        /** nan = none. Show this texcoord in the texture inspector, including any projection
+            and border math. The z component is not a MIP level. It is used for cube maps
+            and 3D textures.*/
+        Vector3          highlightTexCoord = Vector3::nan();
 
         /** Defaults to linear data on [0, 1]: packed normal maps,
             reflectance maps, etc. */

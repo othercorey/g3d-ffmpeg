@@ -346,11 +346,11 @@ public:
         m_textureBox->setSettings(m_settings);
 
         // Update the xy/uv/rgba labels
-        shared_ptr<Texture> tex = m_textureBox->texture();
+        const shared_ptr<Texture>& tex = m_textureBox->texture();
         float w = 1, h = 1;
         if (tex) {
-            w = (float)tex->width();
-            h = (float)tex->height();
+            w = float(tex->width());
+            h = float(tex->height());
         }
 
         // Render child controls so that they slide under the canvas
@@ -779,7 +779,9 @@ void GuiTextureBox::render(RenderDevice* rd, const shared_ptr<GuiTheme>& theme, 
                     // Find the mouse position
                     Vector2 mousePos;
                     uint8 ignore;
+                    static const float scale = GLFWWindow::defaultGuiPixelScale();
                     window()->window()->getRelativeMouseState(mousePos, ignore);
+                    mousePos /= scale;
                     // Make relative to the control
                     mousePos -= matrix.translation.xy();
                     if (m_clipBounds.contains(mousePos) && r.contains(mousePos)) {

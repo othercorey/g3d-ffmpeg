@@ -88,7 +88,11 @@ Color3 evaluateUniversalMaterialBSDF(UniversalMaterialSample surfel, Vector3 w_i
     Color3 f_L = square(1.0 - F) * surfel.lambertianReflectivity * invPi * inPositiveHemisphere;
 
     // 0^0 = nan, so we max the exponent 
-    Color3 f_G = F * pow(max(0.0, dot(w_h, n)), max(glossyExponent, 1e-6)) * (glossyExponent + 8.0) / (8.0 * pi * square(max(0.0, max(dot(w_i, n), dot(w_o, n)))));
+    float denom = 8.0 * pi * square(max(0.0, max(dot(w_i, n), dot(w_o, n))));
+    Color3 f_G = F * pow(max(0.0, dot(w_h, n)), max(glossyExponent, 1e-6)) * (glossyExponent + 8.0) / denom;
+    if (denom < 1e-5) {
+        f_G = Color3(0.0f);
+    }
 
     // TODO: Transmission
     Color3 f_T = Color3(0);// ((1.0 - F) * surfel.lambertianReflectivity) * (1.0 - F) * Color3(0);

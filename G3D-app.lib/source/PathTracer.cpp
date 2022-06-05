@@ -131,15 +131,21 @@ void PathTracer::generateEyeRays
             const float radius = sqrt(h.y);
             const Point2 lens(cos(angle) * radius, sin(angle) * radius);
             rayBuffer[i] = camera->worldRay(P.x, P.y, lens.x, lens.y, viewport);
-        } else {
+        }
+        else {
             rayBuffer[i] = camera->worldRay(P.x, P.y, viewport);
         }
 
         // Camera coords put integers at top left, but image coords put them at pixel centers
         const PixelCoord& pixelCoord = Point2(point) + offset - Point2(0.5f, 0.5f);
         pixelCoordBuffer[i] = pixelCoord;
-        weightSumImage->bilinearIncrement(pixelCoord, Color1(1.0f));
-    }, ! m_options.multithreaded);
+        }, ! m_options.multithreaded);
+
+    const Color1 one(1.0f);
+    for (const PixelCoord& pixelCoord : pixelCoordBuffer) {
+        weightSumImage->bilinearIncrement(pixelCoord, one);
+    }
+
 }
 
 
@@ -172,6 +178,7 @@ void PathTracer::addEmissive
             if (outputBuffer) {
                 outputBuffer[outputCoordBuffer[i]] += L_e * modulationBuffer[i];
             } else {
+                //radianceImage->increment(Point2int32(pixelCoordBuffer[i]), L_e * modulationBuffer[i]);
                 radianceImage->bilinearIncrement(pixelCoordBuffer[i], L_e * modulationBuffer[i]);
             }
         }
@@ -435,6 +442,7 @@ void PathTracer::shade
             if (outputBuffer) {
                 outputBuffer[outputCoordBuffer[i]] += L * modulationBuffer[i];
             } else {
+                //radianceImage->increment(Point2int32(pixelCoordBuffer[i]), L * modulationBuffer[i]);
                 radianceImage->bilinearIncrement(pixelCoordBuffer[i], L * modulationBuffer[i]);
             }
         }
@@ -663,6 +671,7 @@ void PathTracer::traceBufferInternal
             if (output) {
                 output[buffers.outputIndex[i]] += L;
             } else {
+                //radianceImage->increment(Point2int32(buffers.outputCoord[i]), L);
                 radianceImage->bilinearIncrement(buffers.outputCoord[i], L);
             }
         });

@@ -565,6 +565,7 @@ public:
         testInvariants();
         if (m_data && m_allocated) {
             // If in buffer, this will do nothing
+            // Note that we're calling the G3DString::free() method, not ::free()!
             free(m_data);
         }
     }

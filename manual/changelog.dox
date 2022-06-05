@@ -257,10 +257,10 @@
 	<li> G3D::GApp::realTimeTargetDuration &rarr; G3D::GApp::frameDuration</li>
 	<li> Converted TBB from .so to .dylib on MacOS. You may need to run <code>/usr/libexec/locate.updatedb</code> when updating on that platform. </li>
     <li> Added error message String as optional last argument for AnyTableReader::get() methods. This string gets appended to any ParseError it catches. </li>
-    <li> G3D::FilmSettings::upscaleFilter(), G3D::FilmSettings::downscaleFilter() </li> 
-    <li> G3D::ResampleFilter </li> 
+    <li> G3D::FilmSettings::upscaleFilter(), G3D::FilmSettings::downscaleFilter() </li>
+    <li> G3D::ResampleFilter </li>
     <li> Changed the biasing of 8-bit motion vectors to make zero exactly representable [Ben Boudaoud]</li>
-    <li> Added new G3D::Image::forEachPixel overloads for non-mutating callbacks and for passing the color by value 
+    <li> Added new G3D::Image::forEachPixel overloads for non-mutating callbacks and for passing the color by value
          instead of const reference (which is more convenient for the caller and probably the same performance on a 64-bit machine).</li>
 	<li> Exposed FMOD's setDSPBufferSize parameters in G3DSpecification with FMOD defaults as G3D defaults. [Josef Spjut]</li>
 	<li> Excluded Python and Embree from linking on ARM, since they use precompiled x64 binaries in the current build </li>
@@ -271,6 +271,7 @@
     <li> Added G3D::Edge::nextEdgeIndexInFace(). </li>
     <li> Added G3D::ArticulatedModel::Specification::convertMTLToUniversalMaterialSpecification. </li>
     <li> Added G3D::Matrix2x3 * Vector3 operator </li>
+    <li> Added G3D::g3d_allocator for std data structure compability </li>
     </ul>
    </p>
 
@@ -309,8 +310,8 @@
     <li> Fix: G3D::UniversalSurface now checks for points behind the camera when writing SS_POSITION_CHANGE </li>
     <li> G3D::G3DAllocator </li>
     <li> TriTree::Poly::computeArea() computes area accurately [Sam] </li>
-    <li> All G3D string routines now take and return G3D::String</li> 
-    <li> G3D::String</li> 
+    <li> All G3D string routines now take and return G3D::String</li>
+    <li> G3D::String</li>
     <li> G3D::NotAdapter </li>
     <li> G3D::GuiPane::removeAllChildren </li>
     <li> Articulated Models dragged into a GApp and added to Scene are now guaranteed to have unique, valid names and to be properly saved by the scene. [Sam] </li>
@@ -342,8 +343,8 @@
     <li> G3D::GApp screenshots (F4) now prompt for a filename on save </li>
     <li> Added several materials to the data-files directory </li>
     <li> Added support for dragging and dropping .ArticulatedModel.Any, .MD3Model.Any, .MD2Model.Any, and .Heightfield.Any files directly onto a G3D::GApp</li>
-    <li> Set G3D::RenderDevice::setSwapBuffersAutomatically(false) in the default G3D::GApp</li> 
-    <li> Made G3D::GApp::onGraphics3D into a full-featured forward shading renderer</li> 
+    <li> Set G3D::RenderDevice::setSwapBuffersAutomatically(false) in the default G3D::GApp</li>
+    <li> Made G3D::GApp::onGraphics3D into a full-featured forward shading renderer</li>
     <li> Enhanced motion and camera tracking in the Entity sample </li>
     <li> Added rock models </li>
     <li> Added several materials </li>
@@ -398,7 +399,7 @@
     <li> Added G3D::BumpMap::computeBumpMap </li>
     <li> Added support for 16- and 32-bit per channel ImageFormats for G3D::Image </li>
    </ul>
-   
+
    <p>
    Changes in 9.01:
    <ul>

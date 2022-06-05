@@ -1297,11 +1297,11 @@ shared_ptr<Shader::ShaderProgram> Shader::shaderProgram(const Args& args, String
         return *sp;
     }
 
-    /** Maps preamble + macro definitions to an array of the source code each shader stage.
-        The array values have STAGE_COUNT elements. */
+    // Maps preamble + macro definitions to an array of the source code each shader stage.
+    // The array values have STAGE_COUNT elements.
     Array<PreprocessedShaderSource> preprocessedSource;
 
-        // Load and preprocess the shader using the call-site arguments in args, which
+    // Load and preprocess the shader using the call-site arguments in args, which
     // can affect loop unrolling and includes.
     loadAndPreprocess(args, preprocessedSource);
 

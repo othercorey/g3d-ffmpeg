@@ -41,6 +41,10 @@ class Framebuffer;
  All dimensions are of the client area (inside the frame, if the
  window has a frame).
 
+ All mouse and window coordinates are in true device pixels. For logical 
+ pixels on high-DPI displays, adjust using GLFWWindow::defaultGuiPixelScale().
+ Alternatively, the GuiXXX classes take the logical scale into account for your.
+
  After instantiation, a OSWindow guarantees that the OpenGL context for this
  window is bound.  It may be unbound by later code--use OSWindow::makeCurrent
  if you have multiple windows in your application.
@@ -55,20 +59,6 @@ class Framebuffer;
         from the end of their constructor/create function to
         finish initializing OpenGL. 
 
- <B>Input</B>
- This class will be extended with UI events and constants 
- in a future revision.  For now it is limited to rendering
- and window management.  Consider writing your own UserInput
- replacement in the mean time.
-
- <B>Implementations</B>
- The following OSWindow subclasses already exist: 
- G3D::GLFWWindow,
- G3D::SDLWindow, 
- G3D::Win32Window.
-
- One typically chooses among these based on the GUI API used 
- to manage the main window.
 
  \sa G3D::GuiWindow
  */
@@ -256,11 +246,9 @@ private:
         the same OSWindow current, they are ignored. */
     static const OSWindow*      m_current;
 
-    static Array<OSWindow*>      s_windowStack;
+    static Array<OSWindow*>     s_windowStack;
 
 protected:
-
-
 
     /** Use this to maintain settings in sub-classes */
     Settings                    m_settings;
@@ -332,8 +320,6 @@ public:
     /** Number of physical displays (e.g., monitors) reported by the operating system. The OSWindow implementation calls the appropriate 
         subclass override for the current operating system.*/
     static int numDisplays();
-
-
 
     virtual void hide() const {};
     virtual void show() const {};

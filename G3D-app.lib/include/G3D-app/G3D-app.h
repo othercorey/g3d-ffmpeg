@@ -18,6 +18,7 @@
 #include "G3D-app/NativeTriTree.h"
 #include "G3D-app/EmbreeTriTree.h"
 #include "G3D-app/OptiXTriTree.h"
+#include "G3D-app/VulkanTriTree.h"
 #include "G3D-app/GFont.h"
 #include "G3D-app/UserInput.h"
 #include "G3D-app/FirstPersonManipulator.h"

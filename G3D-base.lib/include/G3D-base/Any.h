@@ -835,7 +835,7 @@ public:
     void loadIfExists(const String& filename);
 
     /** Uses the serialize method. If the extension is ".json", uses JSON format with coercion, otherwise uses native Any format. */
-    void save(const String& filename) const;
+    void save(const String& filename, bool json = false) const;
 
     /** \param coerce.  If json=true, should features that JSON doesn't support be coerced or produce errors?*/
     void serialize(TextOutput& to, bool json = false, bool coerce = false) const;
